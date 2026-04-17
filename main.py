@@ -585,6 +585,17 @@ def provider_confirm_job(token: str, rid: int):
     return {"id": rid, "provider_confirmation": "confirmed"}
 
 
+@app.delete("/api/providers/{pid}", tags=["Providers"])
+def delete_provider(pid: int):
+    with db() as c:
+        c.execute("SELECT name FROM providers WHERE id=%s", (pid,))
+        p = c.fetchone()
+        if not p:
+            raise HTTPException(404, "Lavador no encontrado")
+        c.execute("DELETE FROM providers WHERE id=%s", (pid,))
+    log(f"[LAVADOR] Eliminado #{pid} {p['name']}")
+    return {"id": pid, "deleted": True}
+
 @app.patch("/api/proveedor/{token}/availability", tags=["Provider Portal"])
 def update_provider_availability(token: str, b: AvailabilityBody):
     prov = _get_provider_by_token(token)
