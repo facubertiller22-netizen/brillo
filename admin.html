@@ -3,10 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin – Lavadero Nordelta</title>
+  <title>Admin – Brillo</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    /* Login screen */
+    #login-screen {
+      position: fixed; inset: 0; background: #0d1117; z-index: 999;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: #161b27; border-radius: 16px; padding: 40px 32px;
+      width: 320px; text-align: center; border: 1px solid rgba(255,255,255,.08);
+    }
+    .login-box h2 { color: white; font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .login-box p  { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+    .login-box input {
+      width: 100%; padding: 13px; background: #0d1117; border: 1.5px solid #2d3748;
+      border-radius: 10px; color: white; font-size: 16px; text-align: center;
+      letter-spacing: 4px; outline: none; font-family: Arial, sans-serif;
+    }
+    .login-box input:focus { border-color: #4361ee; }
+    .login-btn {
+      width: 100%; margin-top: 14px; padding: 13px; background: #4361ee; color: white;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: Arial, sans-serif;
+    }
+    .login-btn:hover { background: #3451d1; }
+    .login-error { color: #ef4444; font-size: 13px; margin-top: 10px; display: none; }
 
     /* Top bar */
     .topbar { background: #1a1a2e; color: white; padding: 14px 20px;
@@ -140,8 +165,22 @@
 </head>
 <body>
 
+<!-- ── Login screen ──────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Brillo Admin</h2>
+    <p>Ingresá la contraseña para continuar</p>
+    <input type="password" id="admin-pwd" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter')checkLogin()">
+    <button class="login-btn" onclick="checkLogin()">Entrar</button>
+    <div class="login-error" id="login-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="admin-content" style="display:none">
+
 <div class="topbar">
-  <h1>Lavadero Nordelta · Admin</h1>
+  <h1>Brillo · Admin</h1>
   <div class="topbar-right">
     <button class="refresh-btn" onclick="loadAll()">↺ Actualizar</button>
   </div>
@@ -287,7 +326,34 @@
   </div>
 </div>
 
+</div><!-- end #admin-content -->
+
 <script>
+  /* ── Login ──────────────────────────────────────────────────── */
+  const ADMIN_PASSWORD = 'brillo2025';
+
+  function checkLogin() {
+    const pwd = document.getElementById('admin-pwd').value;
+    if (pwd === ADMIN_PASSWORD) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-content').style.display = 'block';
+      sessionStorage.setItem('brillo_admin', '1');
+      loadAll();
+    } else {
+      const err = document.getElementById('login-error');
+      err.style.display = 'block';
+      document.getElementById('admin-pwd').value = '';
+      document.getElementById('admin-pwd').focus();
+      setTimeout(() => err.style.display = 'none', 3000);
+    }
+  }
+
+  // Auto-login si ya autenticó en esta sesión
+  if (sessionStorage.getItem('brillo_admin') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+  }
+
   /* ── State ─────────────────────────────────────────────────── */
   let allRequests  = [];
   let allProviders = [];
@@ -711,8 +777,13 @@
   function esc(s) { return (s||'').replace(/'/g, "\\'"); }
 
   /* ── Init ───────────────────────────────────────────────────── */
-  loadAll();
-  setInterval(loadAll, 30000);
+  // loadAll() se llama solo después del login exitoso
+  if (sessionStorage.getItem('brillo_admin') === '1') {
+    loadAll();
+  }
+  setInterval(() => {
+    if (sessionStorage.getItem('brillo_admin') === '1') loadAll();
+  }, 30000);
 </script>
 </body>
 </html>
