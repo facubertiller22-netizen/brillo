@@ -81,7 +81,7 @@
     .calendar-card {
       background: white; border-radius: 16px; padding: 18px;
       box-shadow: 0 2px 8px rgba(0,0,0,.06); border: 1.5px solid var(--border);
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
     .cal-nav {
       display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
@@ -92,24 +92,43 @@
       width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: var(--text);
     }
     .cal-nav button:hover { background: var(--border); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
     .cal-dow {
       text-align: center; font-size: 11px; font-weight: 700;
       color: var(--muted); padding: 4px 0; text-transform: uppercase;
     }
     .cal-day {
-      text-align: center; padding: 6px 2px; font-size: 13px; font-weight: 500;
-      border-radius: 8px; cursor: default; position: relative; min-height: 34px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 2px;
+      text-align: center; padding: 5px 2px; font-size: 13px; font-weight: 500;
+      border-radius: 8px; cursor: default; min-height: 36px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding-top: 6px; gap: 3px;
     }
-    .cal-day.today { background: var(--blue-lt); color: var(--blue); font-weight: 800; }
+    .cal-day.today { background: var(--blue-lt); color: var(--blue); font-weight: 800; border-radius: 8px; }
     .cal-day.has-job { cursor: pointer; }
     .cal-day.has-job:hover { background: #f8faff; }
+    .cal-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
     .cal-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
     }
-    .cal-day.today .cal-dot { background: var(--blue-dk); }
+    .cal-dot.pending   { background: #f59e0b; }
+    .cal-dot.confirmed { background: var(--green); }
+    .cal-dot.done      { background: #94a3b8; }
+
+    /* ── Agenda sections ────────────────────────────────── */
+    .agenda-section { margin-bottom: 20px; }
+    .agenda-section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 10px; padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .agenda-section-title.needs-action { background: #fef3c7; color: #92400e; }
+    .agenda-section-title.upcoming     { background: #d1fae5; color: #065f46; }
+    .agenda-section-title.no-date      { background: #f1f5f9; color: var(--muted); }
+    .agenda-section-title .count {
+      margin-left: auto; background: rgba(0,0,0,.1);
+      border-radius: 20px; padding: 1px 8px; font-size: 11px;
+    }
 
     /* ── Job card ───────────────────────────────────────── */
     .job-card {
@@ -461,39 +480,66 @@
 
   /* ── AGENDA ──────────────────────────────────────── */
   function renderAgenda() {
-    const pane = document.getElementById('pane-agenda');
-    const upcoming = jobs.filter(j => j.status==='assigned');
-    pane.innerHTML = '';
+    const pane     = document.getElementById('pane-agenda');
+    const assigned = jobs.filter(j => j.status === 'assigned');
 
-    // Warning bar
-    const warn = document.createElement('div');
-    warn.className = 'warn-bar';
-    warn.innerHTML = '<span style="font-size:16px">⚠️</span><div><strong>Regla Brillo:</strong> No contactes al cliente directamente.</div>';
-    pane.appendChild(warn);
+    // Split by status
+    const needsAction = assigned.filter(j => j.provider_confirmation === 'pending');
+    const confirmed   = assigned.filter(j => j.provider_confirmation === 'confirmed' && j.scheduled_date);
+    const noDate      = assigned.filter(j => !j.scheduled_date);
+    const reschedule  = assigned.filter(j => j.provider_confirmation === 'reschedule_requested');
+
+    // Sort confirmed by date
+    confirmed.sort((a,b) => a.scheduled_date.localeCompare(b.scheduled_date));
+
+    let html = `<div class="warn-bar"><span style="font-size:16px">⚠️</span>
+      <div><strong>Regla Brillo:</strong> No contactes al cliente directamente.</div></div>`;
 
     // Calendar
-    const calWrap = document.createElement('div');
-    pane.appendChild(calWrap);
-    renderCalendar(calWrap);
+    html += `<div id="cal-container"></div>`;
 
-    // Upcoming jobs
-    const title = document.createElement('div');
-    title.className = 'pane-title';
-    title.style.marginTop = '8px';
-    title.textContent = 'Trabajos asignados';
-    pane.appendChild(title);
-
-    if (!upcoming.length) {
-      pane.insertAdjacentHTML('beforeend',
-        `<div class="empty"><div class="ico">📅</div>
-         <p>No tenés trabajos asignados.<br>El equipo de Brillo te notificará cuando haya uno.</p></div>`);
-    } else {
-      upcoming.forEach(j => {
-        const card = document.createElement('div');
-        card.innerHTML = jobCardHTML(j);
-        pane.appendChild(card.firstElementChild);
-      });
+    // Section: needs action
+    if (needsAction.length || reschedule.length) {
+      const all = [...needsAction, ...reschedule];
+      html += `<div class="agenda-section">
+        <div class="agenda-section-title needs-action">
+          ⚡ Requieren tu confirmación
+          <span class="count">${all.length}</span>
+        </div>
+        ${all.map(j => jobCardHTML(j)).join('')}
+      </div>`;
     }
+
+    // Section: confirmed upcoming
+    if (confirmed.length) {
+      html += `<div class="agenda-section">
+        <div class="agenda-section-title upcoming">
+          ✅ Próximos confirmados
+          <span class="count">${confirmed.length}</span>
+        </div>
+        ${confirmed.map(j => jobCardHTML(j)).join('')}
+      </div>`;
+    }
+
+    // Section: no date yet
+    if (noDate.length) {
+      html += `<div class="agenda-section">
+        <div class="agenda-section-title no-date">
+          📋 Sin fecha asignada
+          <span class="count">${noDate.length}</span>
+        </div>
+        ${noDate.map(j => jobCardHTML(j)).join('')}
+      </div>`;
+    }
+
+    // Empty state
+    if (!assigned.length) {
+      html += `<div class="empty"><div class="ico">📅</div>
+        <p>No tenés trabajos asignados por ahora.<br>Brillo te notificará cuando haya uno nuevo.</p></div>`;
+    }
+
+    pane.innerHTML = html;
+    renderCalendar(document.getElementById('cal-container'));
   }
 
   /* ── CALENDAR ────────────────────────────────────── */
@@ -501,30 +547,35 @@
     const year  = calMonth.getFullYear();
     const month = calMonth.getMonth();
     const today = new Date();
-
-    const jobDays = new Set();
-    jobs.forEach(j => {
-      if (j.scheduled_date && j.status==='assigned') {
-        const [y,m] = j.scheduled_date.split('-');
-        if (parseInt(y)===year && parseInt(m)-1===month)
-          jobDays.add(parseInt(j.scheduled_date.split('-')[2]));
-      }
-    });
-
-    const firstDay   = new Date(year, month, 1).getDay();
-    const daysInMonth= new Date(year, month+1, 0).getDate();
     const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+    // Build map: day → array of job statuses
+    const dayMap = {};
+    jobs.forEach(j => {
+      if (!j.scheduled_date || j.status !== 'assigned') return;
+      const [y, m, d] = j.scheduled_date.split('-').map(Number);
+      if (y !== year || m - 1 !== month) return;
+      if (!dayMap[d]) dayMap[d] = [];
+      dayMap[d].push(j.provider_confirmation === 'confirmed' ? 'confirmed' : 'pending');
+    });
+
+    const firstDay    = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
     let daysHTML = ['Do','Lu','Ma','Mi','Ju','Vi','Sa']
-      .map(d=>`<div class="cal-dow">${d}</div>`).join('');
+      .map(d => `<div class="cal-dow">${d}</div>`).join('');
     daysHTML += Array(firstDay).fill('<div></div>').join('');
-    for (let d=1; d<=daysInMonth; d++) {
+
+    for (let d = 1; d <= daysInMonth; d++) {
       const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
-      const hasJob  = jobDays.has(d);
+      const statuses = dayMap[d] || [];
+      const hasJob   = statuses.length > 0;
+      const dots     = statuses.map(s => `<span class="cal-dot ${s}"></span>`).join('');
       daysHTML += `<div class="cal-day${isToday?' today':''}${hasJob?' has-job':''}"
-        ${hasJob?`onclick="focusDay(${year},${month+1},${String(d).padStart(2,'0')})"`:''}>
-        ${d}${hasJob?'<span class="cal-dot"></span>':''}
+        ${hasJob ? `onclick="focusDay(${year},${month+1},${String(d).padStart(2,'0')})"` : ''}>
+        ${d}
+        ${hasJob ? `<div class="cal-dots">${dots}</div>` : ''}
       </div>`;
     }
 
@@ -536,23 +587,26 @@
         <button onclick="changeMonth(1)">›</button>
       </div>
       <div class="cal-grid">${daysHTML}</div>
+      <div style="display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted);">
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:4px"></span>Sin confirmar</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#059669;margin-right:4px"></span>Confirmado</span>
+      </div>
     </div>`;
   }
 
   function changeMonth(delta) {
-    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+delta, 1);
+    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + delta, 1);
     renderAgenda();
   }
 
   function focusDay(y, m, d) {
     const dateStr = `${y}-${String(m).padStart(2,'0')}-${d}`;
-    // scroll to matching job card
-    const cards = document.querySelectorAll('[data-date]');
+    const cards   = document.querySelectorAll('[data-date]');
     for (const c of cards) {
       if (c.dataset.date === dateStr) {
         c.scrollIntoView({ behavior:'smooth', block:'center' });
-        c.style.boxShadow = '0 0 0 3px #2563eb55';
-        setTimeout(()=>c.style.boxShadow='',1800);
+        c.style.outline = '3px solid #2563eb';
+        setTimeout(() => c.style.outline = '', 2000);
         return;
       }
     }
