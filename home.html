@@ -34,12 +34,57 @@
     }
     .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .nav-logo img { height: 52px; width: auto; display: block; }
+    .nav-right { display: flex; gap: 8px; align-items: center; }
     .nav-cta {
       padding: 9px 20px; background: var(--blue); color: white; border: none;
       border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
       font-family: 'Inter', Arial, sans-serif;
     }
     .nav-cta:hover { background: var(--blue-dk); }
+    .nav-lavador {
+      padding: 9px 16px; background: transparent; color: #94a3b8;
+      border: 1.5px solid rgba(255,255,255,.15); border-radius: 10px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: all .2s;
+    }
+    .nav-lavador:hover { border-color: rgba(255,255,255,.4); color: white; }
+
+    /* Token modal */
+    .token-overlay {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .token-overlay.open { display: flex; }
+    .token-box {
+      background: white; border-radius: 20px; padding: 32px 28px;
+      max-width: 380px; width: 100%; text-align: center;
+      animation: tFadeIn .25s ease both;
+    }
+    @keyframes tFadeIn {
+      from { opacity:0; transform: translateY(16px) scale(.97); }
+      to   { opacity:1; transform: translateY(0) scale(1); }
+    }
+    .token-box .t-ico { font-size: 40px; margin-bottom: 12px; }
+    .token-box h3 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+    .token-box p  { font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+    .token-input {
+      width: 100%; padding: 14px; font-size: 15px; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; outline: none; font-family: 'Inter', Arial, sans-serif;
+      text-align: center; letter-spacing: 1px; color: var(--text);
+    }
+    .token-input:focus { border-color: var(--blue); }
+    .token-btn {
+      width: 100%; margin-top: 12px; padding: 14px; background: var(--blue); color: white;
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: background .2s;
+    }
+    .token-btn:hover { background: var(--blue-dk); }
+    .token-close {
+      display: block; margin-top: 14px; color: var(--muted); font-size: 13px;
+      cursor: pointer; background: none; border: none; font-family: 'Inter', Arial, sans-serif;
+    }
+    .token-error { color: #dc2626; font-size: 13px; margin-top: 10px; display: none; }
 
     /* ── Hero ───────────────────────────────────────────────── */
     .hero {
@@ -476,7 +521,10 @@
   <a href="#" class="nav-logo">
     <img src="/logo.png" alt="brillo">
   </a>
-  <button class="nav-cta" onclick="openBooking()">Pedir turno</button>
+  <div class="nav-right">
+    <button class="nav-lavador" onclick="openTokenModal()">Soy lavador</button>
+    <button class="nav-cta"     onclick="openBooking()">Pedir turno</button>
+  </div>
 </nav>
 
 <!-- ── Hero ────────────────────────────────────────────────────── -->
@@ -776,6 +824,20 @@
   </div>
 </div>
 
+<!-- ── Token Modal ────────────────────────────────────────────────── -->
+<div class="token-overlay" id="token-overlay" onclick="handleTokenOverlay(event)">
+  <div class="token-box">
+    <div class="t-ico">🔑</div>
+    <h3>Acceder a mi dashboard</h3>
+    <p>Ingresá el código que te envió el equipo de Brillo por WhatsApp.</p>
+    <input class="token-input" id="token-input" placeholder="Tu código de acceso"
+           onkeydown="if(event.key==='Enter')goToDashboard()">
+    <button class="token-btn" onclick="goToDashboard()">Ir a mi dashboard →</button>
+    <div class="token-error" id="token-error">Código inválido. Revisá el mensaje que te enviamos.</div>
+    <button class="token-close" onclick="closeTokenModal()">Cancelar</button>
+  </div>
+</div>
+
 <!-- ── Chat Widget ─────────────────────────────────────────────── -->
 <button class="chat-btn" id="chat-btn" onclick="toggleChat()" title="Hablar con Brillo">
   💬
@@ -1010,6 +1072,35 @@
   /* ── Helpers ─────────────────────────────────────────────────── */
   function fmt(n) { return Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }); }
   function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+
+  /* ── Token modal ────────────────────────────────────────────── */
+  function openTokenModal() {
+    document.getElementById('token-input').value = '';
+    document.getElementById('token-error').style.display = 'none';
+    document.getElementById('token-overlay').classList.add('open');
+    setTimeout(()=>document.getElementById('token-input').focus(), 100);
+  }
+  function closeTokenModal() {
+    document.getElementById('token-overlay').classList.remove('open');
+  }
+  function handleTokenOverlay(e) {
+    if (e.target===document.getElementById('token-overlay')) closeTokenModal();
+  }
+  async function goToDashboard() {
+    const token = document.getElementById('token-input').value.trim();
+    if (!token) return;
+    try {
+      const r = await fetch(`/api/proveedor/${token}/jobs`,
+        { headers:{'ngrok-skip-browser-warning':'true'} });
+      if (r.ok) {
+        window.location.href = `/proveedor/${token}`;
+      } else {
+        document.getElementById('token-error').style.display = 'block';
+      }
+    } catch(e) {
+      document.getElementById('token-error').style.display = 'block';
+    }
+  }
 
   /* ── Init ────────────────────────────────────────────────────── */
   loadData();
