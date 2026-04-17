@@ -150,13 +150,16 @@ def _make_token() -> str:
 
 
 def _seed_provider_tokens():
-    """Assign a unique portal token to every provider that doesn't have one yet."""
+    """Assign 8-digit tokens to providers that don't have one or have old-format tokens."""
     with db() as c:
-        c.execute("SELECT id FROM providers WHERE provider_token IS NULL OR provider_token=''")
+        c.execute("SELECT id, provider_token FROM providers")
         rows = c.fetchall()
         for row in rows:
-            token = _make_token()
-            c.execute("UPDATE providers SET provider_token=%s WHERE id=%s", (token, row["id"]))
+            t = row["provider_token"] or ""
+            # Re-seed if token is missing or not exactly 8 digits
+            if not (t.isdigit() and len(t) == 8):
+                token = _make_token()
+                c.execute("UPDATE providers SET provider_token=%s WHERE id=%s", (token, row["id"]))
 
 _seed_provider_tokens()
 

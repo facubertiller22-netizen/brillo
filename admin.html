@@ -589,13 +589,21 @@
       const nsCount = p.noshow_count || 0;
       const fullPortalUrl = window.location.origin + '/proveedor/' + (p.provider_token || '');
       const portalLink = p.provider_token
-        ? `<div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;">
-             <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">🔑 Link del portal</div>
-             <div style="font-size:12px;color:#1e40af;word-break:break-all;margin-bottom:8px;">${fullPortalUrl}</div>
+        ? `<div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;">
+             <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🔑 Acceso del lavador</div>
+             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+               <div style="font-size:26px;font-weight:900;color:#1a1a2e;letter-spacing:4px;font-family:monospace;">${p.provider_token}</div>
+               <button class="btn-action edit" style="font-size:12px;padding:5px 10px;"
+                 onclick="navigator.clipboard.writeText('${p.provider_token}').then(()=>alert('Código copiado! Mandáselo al lavador por WhatsApp.'))">
+                 📋 Copiar código
+               </button>
+             </div>
+             <div style="font-size:11px;color:#64748b;margin-bottom:8px;">O mandá el link completo:</div>
+             <div style="font-size:11px;color:#1e40af;word-break:break-all;margin-bottom:8px;">${fullPortalUrl}</div>
              <div style="display:flex;gap:6px;">
                <button class="btn-action edit" style="font-size:12px;padding:5px 10px;"
-                 onclick="navigator.clipboard.writeText('${fullPortalUrl}').then(()=>alert('Link copiado! Mandáselo al lavador por WhatsApp.'))">
-                 📋 Copiar link
+                 onclick="navigator.clipboard.writeText('${fullPortalUrl}').then(()=>alert('Link copiado!'))">
+                 🔗 Copiar link
                </button>
                <a href="${fullPortalUrl}" target="_blank"
                   style="font-size:12px;padding:5px 10px;background:#f0f4f8;color:#333;border:1px solid #ddd;border-radius:8px;font-weight:700;text-decoration:none;">
