@@ -120,6 +120,7 @@ def init_db():
             ("notes",                "TEXT    NOT NULL DEFAULT ''"),
             ("provider_token",       "TEXT"),
             ("noshow_count",         "INTEGER NOT NULL DEFAULT 0"),
+            ("specialties",          "TEXT    NOT NULL DEFAULT ''"),
         ]:
             _add_column(c, "providers", col, dfn)
 
@@ -177,6 +178,7 @@ class NewProvider(BaseModel):
     commission_pct: float = 20.0
     availability:   str   = "available"
     notes:          str   = ""
+    specialties:    str   = ""
 
 class UpdateProvider(BaseModel):
     name:           Optional[str]   = None
@@ -187,6 +189,7 @@ class UpdateProvider(BaseModel):
     commission_pct: Optional[float] = None
     availability:   Optional[str]   = None
     notes:          Optional[str]   = None
+    specialties:    Optional[str]   = None
 
 class NewRequest(BaseModel):
     name:    str
@@ -297,15 +300,17 @@ def create_provider(b: NewProvider):
     with db() as c:
         c.execute(
             """INSERT INTO providers
-               (name, phone, zone, bio, is_pro, commission_pct, availability, notes, provider_token, created_at)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+               (name, phone, zone, bio, is_pro, commission_pct, availability, notes, specialties, provider_token, created_at)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
             (b.name, b.phone, b.zone, b.bio,
-             int(b.is_pro), b.commission_pct, b.availability, b.notes, token, now)
+             int(b.is_pro), b.commission_pct, b.availability, b.notes, b.specialties, token, now)
         )
         pid = c.fetchone()["id"]
-    log(f"[LAVADOR] #{pid} {b.name} | {'PRO' if b.is_pro else 'Std'} | Com {b.commission_pct}%")
+    portal_url = f"/proveedor/{token}"
+    log(f"[LAVADOR] #{pid} {b.name} | {'PRO' if b.is_pro else 'Std'} | Com {b.commission_pct}% | Token: {token}")
     return {"id": pid, "name": b.name, "is_pro": b.is_pro,
-            "commission_pct": b.commission_pct, "provider_token": token}
+            "commission_pct": b.commission_pct, "provider_token": token,
+            "portal_url": portal_url}
 
 
 @app.get("/api/providers", tags=["Providers"])
@@ -316,7 +321,7 @@ def list_providers(pro_only: bool = False):
         return [dict(r) for r in c.fetchall()]
 
 
-_PUBLIC_PROVIDER_FIELDS = "id, name, zone, bio, is_pro, availability"
+_PUBLIC_PROVIDER_FIELDS = "id, name, zone, bio, is_pro, availability, specialties"
 
 @app.get("/api/public/providers", tags=["Public"])
 def public_providers():

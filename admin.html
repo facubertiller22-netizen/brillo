@@ -161,6 +161,19 @@
     .modal-btns .ok     { background: #4361ee; color: white; }
     .modal-btns .cancel { background: #e0e0e0; color: #333; }
     .hint-text { font-size: 11px; color: #888; margin-top: 4px; }
+
+    /* Specialty chips */
+    .spec-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+    .spec-chip  { display: flex; align-items: center; gap: 5px; padding: 6px 12px;
+                  border: 1.5px solid #e0e0e0; border-radius: 20px; font-size: 12px;
+                  font-weight: 600; cursor: pointer; color: #555; background: white;
+                  font-family: Arial, sans-serif; transition: all .15s; user-select: none; }
+    .spec-chip.on { background: #e8f0fe; border-color: #4361ee; color: #4361ee; }
+    .spec-chip.on::before { content: '✓ '; }
+    /* specialty tags on cards */
+    .spec-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .spec-tag  { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px;
+                 background: #e8f0fe; color: #4361ee; }
   </style>
 </head>
 <body>
@@ -316,6 +329,16 @@
       <label>Comisión %</label>
       <input type="number" id="edit-prov-commission" min="0" max="100">
     </div>
+    <label>Especialidades</label>
+    <div class="spec-chips" id="edit-spec-chips">
+      <button type="button" class="spec-chip" data-val="Lavado exterior"    onclick="toggleChip(this)">Lavado exterior</button>
+      <button type="button" class="spec-chip" data-val="Lavado interior"    onclick="toggleChip(this)">Lavado interior</button>
+      <button type="button" class="spec-chip" data-val="Detailing completo" onclick="toggleChip(this)">Detailing completo</button>
+      <button type="button" class="spec-chip" data-val="Pulido"             onclick="toggleChip(this)">Pulido</button>
+      <button type="button" class="spec-chip" data-val="Cerámico"           onclick="toggleChip(this)">Cerámico</button>
+      <button type="button" class="spec-chip" data-val="PPF"                onclick="toggleChip(this)">PPF</button>
+      <button type="button" class="spec-chip" data-val="Descontaminación"   onclick="toggleChip(this)">Descontaminación</button>
+    </div>
     <div class="modal-btns">
       <button class="cancel" onclick="closeModal('modal-edit-prov')">Cancelar</button>
       <button class="ok" onclick="confirmEditProvider()">Guardar</button>
@@ -343,6 +366,16 @@
     <div id="commission-row" style="display:none">
       <label>Comisión % (nuestra)</label>
       <input type="number" id="prov-commission" value="20" min="0" max="100">
+    </div>
+    <label>Especialidades</label>
+    <div class="spec-chips" id="add-spec-chips">
+      <button type="button" class="spec-chip" data-val="Lavado exterior"    onclick="toggleChip(this)">Lavado exterior</button>
+      <button type="button" class="spec-chip" data-val="Lavado interior"    onclick="toggleChip(this)">Lavado interior</button>
+      <button type="button" class="spec-chip" data-val="Detailing completo" onclick="toggleChip(this)">Detailing completo</button>
+      <button type="button" class="spec-chip" data-val="Pulido"             onclick="toggleChip(this)">Pulido</button>
+      <button type="button" class="spec-chip" data-val="Cerámico"           onclick="toggleChip(this)">Cerámico</button>
+      <button type="button" class="spec-chip" data-val="PPF"                onclick="toggleChip(this)">PPF</button>
+      <button type="button" class="spec-chip" data-val="Descontaminación"   onclick="toggleChip(this)">Descontaminación</button>
     </div>
     <label>Notas internas</label>
     <input type="text" id="prov-notes" placeholder="Solo visible para admin">
@@ -560,6 +593,10 @@
              🔗 Ver portal del lavador
            </a>`
         : '';
+      const specTags = p.specialties
+        ? p.specialties.split(',').filter(Boolean).map(s =>
+            `<span class="spec-tag">${s.trim()}</span>`).join('')
+        : '';
       return `
       <div class="prov-card">
         <div class="av ${p.is_pro ? 'pro' : ''}">${ini}</div>
@@ -570,9 +607,10 @@
           Disponibilidad: <b>${avail}</b>
           ${nsCount > 0 ? ` · <span style="color:#dc3545">⚠️ ${nsCount} no-show${nsCount>1?'s':''}</span>` : ''}<br>
           ${p.notes ? `<span style="color:#888;font-size:12px">Nota: ${p.notes}</span><br>` : ''}
+          ${specTags ? `<div class="spec-tags">${specTags}</div>` : ''}
           ${portalLink}
           <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-            <button class="btn-action edit" onclick="openEditProv(${p.id},'${esc(p.name)}','${esc(p.phone)}','${esc(p.zone)}',${p.is_pro},${p.commission_pct})">✏️ Editar</button>
+            <button class="btn-action edit" onclick="openEditProv(${p.id},'${esc(p.name)}','${esc(p.phone)}','${esc(p.zone)}',${p.is_pro},${p.commission_pct},'${esc(p.specialties||'')}')">✏️ Editar</button>
             <button class="btn-action edit" onclick="toggleProvAvail(${p.id},'${avail}')">
               ${avail === 'inactive' ? '✅ Activar' : '⏸ Pausar'}
             </button>
@@ -765,31 +803,35 @@
   });
 
   async function confirmAddProvider() {
-    const name   = document.getElementById('prov-name').value.trim();
-    const phone  = document.getElementById('prov-phone').value.trim();
-    const zone   = document.getElementById('prov-zone').value.trim();
-    const bio    = document.getElementById('prov-bio').value.trim();
-    const isPro  = document.getElementById('prov-type').value === '1';
-    const comm   = parseFloat(document.getElementById('prov-commission').value) || 20;
-    const notes  = document.getElementById('prov-notes').value.trim();
+    const name        = document.getElementById('prov-name').value.trim();
+    const phone       = document.getElementById('prov-phone').value.trim();
+    const zone        = document.getElementById('prov-zone').value.trim();
+    const bio         = document.getElementById('prov-bio').value.trim();
+    const isPro       = document.getElementById('prov-type').value === '1';
+    const comm        = parseFloat(document.getElementById('prov-commission').value) || 20;
+    const notes       = document.getElementById('prov-notes').value.trim();
+    const specialties = getChips('add-spec-chips');
     if (!name || !phone || !zone) { alert('Completá nombre, celular y zona.'); return; }
     closeModal('modal-add-prov');
     try {
-      await api('/api/providers', {
+      const data = await api('/api/providers', {
         method: 'POST',
         body: JSON.stringify({ name, phone, zone, bio, is_pro: isPro,
-                               commission_pct: comm, notes })
+                               commission_pct: comm, notes, specialties })
       });
       ['prov-name','prov-phone','prov-zone','prov-bio','prov-notes'].forEach(
         id => document.getElementById(id).value = '');
       document.getElementById('prov-type').value = '0';
       document.getElementById('commission-row').style.display = 'none';
+      clearChips('add-spec-chips');
+      const portalUrl = window.location.origin + (data.portal_url || `/proveedor/${data.provider_token}`);
+      alert(`✅ Lavador creado!\n\nLink del portal:\n${portalUrl}\n\nToken: ${data.provider_token}\n\nCompartí este link con ${name}.`);
       await loadAll();
     } catch(e) { alert('Error: ' + e.message); }
   }
 
   /* ── Provider actions ──────────────────────────────────────── */
-  function openEditProv(id, name, phone, zone, isPro, comm) {
+  function openEditProv(id, name, phone, zone, isPro, comm, specialties) {
     document.getElementById('edit-prov-id').value         = id;
     document.getElementById('edit-prov-name').value       = name;
     document.getElementById('edit-prov-phone').value      = phone;
@@ -797,22 +839,24 @@
     document.getElementById('edit-prov-type').value       = isPro ? '1' : '0';
     document.getElementById('edit-prov-commission').value = comm;
     document.getElementById('edit-comm-row').style.display = isPro ? 'block' : 'none';
+    setChips('edit-spec-chips', specialties || '');
     openModal('modal-edit-prov');
   }
 
   async function confirmEditProvider() {
-    const id   = parseInt(document.getElementById('edit-prov-id').value);
-    const name = document.getElementById('edit-prov-name').value.trim();
-    const phone= document.getElementById('edit-prov-phone').value.trim();
-    const zone = document.getElementById('edit-prov-zone').value.trim();
-    const isPro= document.getElementById('edit-prov-type').value === '1';
-    const comm = parseFloat(document.getElementById('edit-prov-commission').value) || 20;
+    const id          = parseInt(document.getElementById('edit-prov-id').value);
+    const name        = document.getElementById('edit-prov-name').value.trim();
+    const phone       = document.getElementById('edit-prov-phone').value.trim();
+    const zone        = document.getElementById('edit-prov-zone').value.trim();
+    const isPro       = document.getElementById('edit-prov-type').value === '1';
+    const comm        = parseFloat(document.getElementById('edit-prov-commission').value) || 20;
+    const specialties = getChips('edit-spec-chips');
     if (!name || !phone || !zone) { alert('Completá todos los campos.'); return; }
     closeModal('modal-edit-prov');
     try {
       await api(`/api/providers/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ name, phone, zone, is_pro: isPro, commission_pct: comm })
+        body: JSON.stringify({ name, phone, zone, is_pro: isPro, commission_pct: comm, specialties })
       });
       await loadAll();
     } catch(e) { alert('Error: ' + e.message); }
@@ -850,6 +894,22 @@
   document.querySelectorAll('.overlay').forEach(o =>
     o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
   );
+
+  /* ── Specialty chips ───────────────────────────────────────── */
+  function toggleChip(btn) { btn.classList.toggle('on'); }
+  function getChips(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} .spec-chip.on`))
+      .map(b => b.dataset.val).join(',');
+  }
+  function setChips(containerId, specialties) {
+    const vals = (specialties || '').split(',').map(s => s.trim()).filter(Boolean);
+    document.querySelectorAll(`#${containerId} .spec-chip`).forEach(btn => {
+      btn.classList.toggle('on', vals.includes(btn.dataset.val));
+    });
+  }
+  function clearChips(containerId) {
+    document.querySelectorAll(`#${containerId} .spec-chip`).forEach(b => b.classList.remove('on'));
+  }
 
   /* ── Helpers ────────────────────────────────────────────────── */
   function statusLabel(s) {
