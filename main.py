@@ -196,6 +196,9 @@ class NewRequest(BaseModel):
     scheduled_date: Optional[str] = None
     scheduled_time: Optional[str] = None
 
+class AvailabilityBody(BaseModel):
+    availability: str
+
 class RescheduleBody(BaseModel):
     scheduled_date: str
     scheduled_time: str
@@ -541,6 +544,7 @@ _PROV_JOB_FIELDS = (
     "r.id, r.address, r.service_type, r.selected_service_id, "
     "r.status, r.scheduled_date, r.scheduled_time, "
     "r.provider_confirmation, r.noshow, r.created_at, "
+    "r.provider_payout, r.payment_status, "
     "s.name AS service_name, s.fixed_price"
 )
 
@@ -574,6 +578,14 @@ def provider_confirm_job(token: str, rid: int):
     log(f"[CONFIRM] #{prov['id']} {prov['name']} → trabajo #{rid}")
     return {"id": rid, "provider_confirmation": "confirmed"}
 
+
+@app.patch("/api/proveedor/{token}/availability", tags=["Provider Portal"])
+def update_provider_availability(token: str, b: AvailabilityBody):
+    prov = _get_provider_by_token(token)
+    with db() as c:
+        c.execute("UPDATE providers SET availability=%s WHERE id=%s", (b.availability, prov["id"]))
+    log(f"[DISPONIBILIDAD] {prov['name']} → {b.availability}")
+    return {"availability": b.availability}
 
 @app.patch("/api/proveedor/{token}/jobs/{rid}/reschedule", tags=["Provider Portal"])
 def provider_reschedule_job(token: str, rid: int, b: RescheduleBody):
