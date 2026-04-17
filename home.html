@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brillo – Detailing a domicilio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & base ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:     #2563eb;
+      --blue-dk:  #1d4ed8;
+      --blue-lt:  #eff6ff;
+      --dark:     #0d1117;
+      --dark2:    #161b27;
+      --text:     #1e293b;
+      --muted:    #64748b;
+      --border:   #e2e8f0;
+      --white:    #ffffff;
+      --radius:   14px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', Arial, sans-serif; color: var(--text);
+           background: var(--white); -webkit-font-smoothing: antialiased; }
+
+    /* ── Navbar ─────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 62px;
+      background: rgba(13,17,23,.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 52px; width: auto; display: block; }
+    .nav-cta {
+      padding: 9px 20px; background: var(--blue); color: white; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .nav-cta:hover { background: var(--blue-dk); }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #0d1117 0%, #0f1f3d 60%, #0d1117 100%);
+      padding: 130px 24px 80px; text-align: center; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(37,99,235,.15); border: 1px solid rgba(37,99,235,.35);
+      color: #93c5fd; font-size: 12px; font-weight: 600; padding: 5px 14px;
+      border-radius: 20px; margin-bottom: 24px; letter-spacing: .3px;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; }
+    .hero h1 {
+      font-size: clamp(32px, 7vw, 58px); font-weight: 900; color: white;
+      line-height: 1.08; letter-spacing: -1.5px; max-width: 700px; margin: 0 auto 18px;
+    }
+    .hero h1 span { color: #60a5fa; }
+    .hero p {
+      font-size: clamp(15px, 2.5vw, 18px); color: #94a3b8; max-width: 460px;
+      margin: 0 auto 36px; line-height: 1.6;
+    }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 15px 30px; background: var(--blue); color: white; border: none;
+      border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: all .2s;
+    }
+    .btn-primary:hover { background: var(--blue-dk); transform: translateY(-1px);
+                          box-shadow: 0 8px 24px rgba(37,99,235,.4); }
+    .btn-outline {
+      padding: 15px 30px; background: transparent;
+      border: 1.5px solid rgba(255,255,255,.2); color: white; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: all .2s;
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.05); }
+
+    /* ── Stats strip ────────────────────────────────────────── */
+    .stats-strip {
+      background: var(--dark2); border-top: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
+    }
+    .stat-item {
+      padding: 20px 32px; text-align: center;
+      border-right: 1px solid rgba(255,255,255,.06);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item .val { font-size: 22px; font-weight: 800; color: white; }
+    .stat-item .lbl { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+    /* ── Section base ───────────────────────────────────────── */
+    section { padding: 72px 24px; }
+    .section-inner { max-width: 1000px; margin: 0 auto; }
+    .section-label {
+      font-size: 12px; font-weight: 700; color: var(--blue); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(24px, 4vw, 36px); font-weight: 800; color: var(--text);
+      letter-spacing: -.5px; line-height: 1.15; margin-bottom: 10px;
+    }
+    .section-sub { font-size: 15px; color: var(--muted); max-width: 500px; line-height: 1.6; }
+
+    /* ── How it works ───────────────────────────────────────── */
+    #como { background: #f8faff; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+             gap: 24px; margin-top: 40px; }
+    .step-card {
+      background: white; border-radius: var(--radius); padding: 28px 24px;
+      border: 1px solid var(--border); position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--blue);
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px; background: var(--blue-lt);
+      color: var(--blue); font-size: 16px; font-weight: 800; display: flex;
+      align-items: center; justify-content: center; margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .step-card p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Experience tiers ───────────────────────────────────── */
+    #experiencias { background: white; }
+    .tier-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; margin-top: 40px;
+    }
+    @media (max-width: 640px) { .tier-grid { grid-template-columns: 1fr; } }
+
+    .tier-card {
+      border-radius: 20px; padding: 32px 28px; position: relative;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .tier-card.esencial {
+      border: 1.5px solid var(--border); background: white;
+    }
+    .tier-card.pro-tier {
+      background: var(--dark); color: white;
+    }
+    .tier-popular {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: var(--blue); color: white; font-size: 11px; font-weight: 800;
+      padding: 4px 16px; border-radius: 20px; letter-spacing: .5px;
+      white-space: nowrap;
+    }
+    .tier-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .tier-card.esencial .tier-label { color: var(--blue); }
+    .tier-card.pro-tier  .tier-label { color: #60a5fa; }
+    .tier-name {
+      font-size: 26px; font-weight: 900; letter-spacing: -.5px; margin-bottom: 8px;
+    }
+    .tier-card.esencial .tier-name { color: var(--text); }
+    .tier-card.pro-tier  .tier-name { color: white; }
+    .tier-desc {
+      font-size: 14px; line-height: 1.6; margin-bottom: 24px;
+    }
+    .tier-card.esencial .tier-desc { color: var(--muted); }
+    .tier-card.pro-tier  .tier-desc { color: #94a3b8; }
+    .tier-features { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+    .tier-features li { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; }
+    .tier-card.esencial .tier-features li { color: var(--text); }
+    .tier-card.pro-tier  .tier-features li { color: #e2e8f0; }
+    .tier-check {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800;
+    }
+    .tier-card.esencial .tier-check { background: var(--blue-lt); color: var(--blue); }
+    .tier-card.pro-tier  .tier-check { background: rgba(37,99,235,.3); color: #60a5fa; }
+    .tier-cta {
+      width: 100%; padding: 14px; border-radius: 12px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: all .2s; margin-top: auto;
+    }
+    .tier-card.esencial .tier-cta {
+      background: var(--blue); color: white;
+    }
+    .tier-card.esencial .tier-cta:hover { background: var(--blue-dk); }
+    .tier-card.pro-tier  .tier-cta {
+      background: white; color: var(--dark);
+    }
+    .tier-card.pro-tier  .tier-cta:hover { background: #f1f5f9; }
+    .loading-text { color: var(--muted); font-size: 14px; padding: 40px 0; text-align: center; }
+
+    /* ── PRO Providers ──────────────────────────────────────── */
+    #pro { background: #f8faff; }
+    .pro-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px; margin-top: 40px;
+    }
+    .pro-card {
+      background: white; border-radius: var(--radius); padding: 24px;
+      border: 1px solid var(--border); transition: all .2s;
+    }
+    .pro-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); transform: translateY(-2px); }
+    .pro-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .pro-av {
+      width: 52px; height: 52px; border-radius: 14px; background: var(--blue);
+      color: white; font-size: 18px; font-weight: 800; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .pro-name { font-size: 16px; font-weight: 700; }
+    .pro-zone { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .pro-badge {
+      display: inline-block; background: #fef3c7; color: #92400e;
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .pro-bio { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+    .pro-book {
+      width: 100%; padding: 11px; background: var(--dark); color: white; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: background .2s;
+    }
+    .pro-book:hover { background: var(--blue); }
+    .no-pro { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; }
+
+    /* ── Trust / Payment ────────────────────────────────────── */
+    #confianza { background: white; }
+    .trust-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px; margin-top: 40px; margin-bottom: 48px;
+    }
+    .trust-item {
+      text-align: center; padding: 28px 20px; border-radius: var(--radius);
+      background: #f8faff; border: 1px solid var(--border);
+    }
+    .trust-item .ico { font-size: 28px; margin-bottom: 10px; }
+    .trust-item h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .trust-item p  { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .pay-title { font-size: 13px; font-weight: 700; color: var(--muted);
+                 text-transform: uppercase; letter-spacing: .5px; margin-bottom: 16px; }
+    .pay-methods { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .pm-card {
+      width: 56px; height: 36px; border-radius: 6px;
+      border: 1px solid #e2e8f0; background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    footer {
+      background: var(--dark); color: #64748b; text-align: center;
+      padding: 32px 24px; font-size: 13px; line-height: 1.7;
+    }
+    footer strong { color: #94a3b8; }
+
+    /* ── Booking Modal ──────────────────────────────────────── */
+    .overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      justify-content: flex-end; align-items: flex-end;
+    }
+    .overlay.open { display: flex; }
+    @media (min-width: 600px) {
+      .overlay { align-items: center; justify-content: center; }
+    }
+    .modal {
+      background: white; width: 100%; max-width: 460px;
+      border-radius: 22px 22px 0 0; padding: 28px 24px 40px;
+      max-height: 92vh; overflow-y: auto;
+      animation: slideUp .25s ease;
+    }
+    @media (min-width: 600px) {
+      .modal { border-radius: 22px; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal-handle {
+      width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+    @media (min-width: 600px) { .modal-handle { display: none; } }
+    .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.3px; }
+    .modal .modal-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+    .modal label {
+      display: block; font-size: 13px; font-weight: 600; color: #374151;
+      margin-bottom: 6px; margin-top: 14px;
+    }
+    .modal label:first-of-type { margin-top: 0; }
+    .modal input, .modal select {
+      width: 100%; padding: 13px; font-size: 15px; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; outline: none; font-family: 'Inter', Arial, sans-serif;
+      color: var(--text); transition: border-color .15s;
+    }
+    .modal input:focus, .modal select:focus { border-color: var(--blue); }
+    .modal input::placeholder { color: #cbd5e1; }
+    .modal-submit {
+      width: 100%; margin-top: 22px; padding: 15px; background: var(--blue); color: white;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; transition: all .2s;
+    }
+    .modal-submit:hover:not(:disabled) { background: var(--blue-dk); }
+    .modal-submit:disabled { background: #94a3b8; cursor: default; }
+    .selected-info {
+      background: var(--blue-lt); border: 1px solid #bfdbfe; border-radius: 10px;
+      padding: 12px 16px; font-size: 14px; color: var(--blue-dk); font-weight: 600;
+      margin-bottom: 18px; display: none;
+    }
+    .modal-back { color: var(--blue); cursor: pointer; font-size: 13px; font-weight: 500;
+                  margin-bottom: 18px; display: inline-block; background: none; border: none;
+                  font-family: 'Inter', Arial, sans-serif; }
+
+    /* Success state */
+    .success-state {
+      display: none; text-align: center; padding: 16px 0 8px;
+    }
+    .success-ico { font-size: 54px; margin-bottom: 14px; }
+    .success-state h2 { font-size: 22px; font-weight: 800; color: #065f46; margin-bottom: 8px; }
+    .success-state p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+    .success-again {
+      margin-top: 20px; color: var(--blue); cursor: pointer; font-size: 14px;
+      font-weight: 600; background: none; border: none;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+
+    /* ── Chat widget ────────────────────────────────────────── */
+    .chat-btn {
+      position: fixed; bottom: 24px; right: 24px; z-index: 300;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--blue); color: white; border: none; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37,99,235,.45);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; transition: all .2s;
+    }
+    .chat-btn:hover { transform: scale(1.08); background: var(--blue-dk); }
+    .chat-btn .chat-badge {
+      position: absolute; top: -2px; right: -2px;
+      width: 16px; height: 16px; background: #ef4444; border-radius: 50%;
+      border: 2px solid white; display: none;
+    }
+    .chat-panel {
+      position: fixed; bottom: 90px; right: 20px; z-index: 300;
+      width: 340px; max-width: calc(100vw - 32px);
+      background: white; border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.15);
+      display: none; flex-direction: column; overflow: hidden;
+      animation: panelIn .22s ease;
+    }
+    .chat-panel.open { display: flex; }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(16px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .chat-head {
+      background: var(--blue); color: white; padding: 16px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-head-left { display: flex; align-items: center; gap: 12px; }
+    .chat-av {
+      width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.2);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .chat-head-name { font-size: 14px; font-weight: 700; }
+    .chat-head-sub  { font-size: 11px; opacity: .8; margin-top: 1px; }
+    .chat-close { background: none; border: none; color: white; font-size: 20px;
+                   cursor: pointer; opacity: .7; padding: 0 4px; line-height: 1; }
+    .chat-close:hover { opacity: 1; }
+    .chat-body { padding: 18px 16px; max-height: 360px; overflow-y: auto; flex: 1; }
+    .chat-msg {
+      display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end;
+    }
+    .chat-msg .av {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--blue-lt);
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .chat-bubble {
+      background: #f1f5f9; border-radius: 16px 16px 16px 4px;
+      padding: 10px 14px; font-size: 13px; line-height: 1.5; color: var(--text);
+      max-width: 240px;
+    }
+    .chat-options { display: flex; flex-direction: column; gap: 8px; padding: 0 0 4px 36px; }
+    .chat-opt {
+      padding: 10px 16px; border: 1.5px solid var(--border); background: white;
+      border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+      text-align: left; color: var(--blue); font-family: 'Inter', Arial, sans-serif;
+      transition: all .15s;
+    }
+    .chat-opt:hover { background: var(--blue-lt); border-color: var(--blue); }
+    .chat-input-row {
+      display: none; padding: 12px 14px; border-top: 1px solid var(--border);
+      gap: 8px; align-items: center;
+    }
+    .chat-input-row.show { display: flex; }
+    .chat-input {
+      flex: 1; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 14px; outline: none;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .chat-input:focus { border-color: var(--blue); }
+    .chat-send {
+      padding: 10px 16px; background: var(--blue); color: white; border: none;
+      border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .chat-send:hover { background: var(--blue-dk); }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="/logo.png" alt="brillo">
+  </a>
+  <button class="nav-cta" onclick="openBooking()">Pedir turno</button>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="dot"></div>
+    Servicio disponible en Nordelta y alrededores
+  </div>
+  <h1>Tu auto,<br><span>impecable.</span><br>En tu casa.</h1>
+  <p>Detailing profesional a domicilio. Lavadores verificados, pago seguro y resultado garantizado.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="openBooking()">Pedir turno ahora</button>
+    <button class="btn-outline" onclick="document.getElementById('experiencias').scrollIntoView({behavior:'smooth'})">Ver opciones</button>
+  </div>
+</section>
+
+<!-- ── Stats strip ──────────────────────────────────────────────── -->
+<div class="stats-strip">
+  <div class="stat-item"><div class="val">500+</div><div class="lbl">Autos lavados</div></div>
+  <div class="stat-item"><div class="val">⭐ 4.9</div><div class="lbl">Calificación</div></div>
+  <div class="stat-item"><div class="val">100%</div><div class="lbl">Lavadores verificados</div></div>
+  <div class="stat-item"><div class="val">30"</div><div class="lbl">Para pedir turno</div></div>
+</div>
+
+<!-- ── Cómo funciona ─────────────────────────────────────────────── -->
+<section id="como">
+  <div class="section-inner">
+    <div class="section-label">Cómo funciona</div>
+    <div class="section-title">Simple y rápido</div>
+    <p class="section-sub">De la solicitud al auto impecable en el menor tiempo posible.</p>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Elegís tu experiencia</h3>
+        <p>Brillo Esencial para un lavado rápido sin vueltas, o PRO si querés elegir tu especialista.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Confirmamos tu turno</h3>
+        <p>Verificamos disponibilidad y te avisamos quién va a ir. Todo coordinado por Brillo.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Abonás y listo</h3>
+        <p>Recibís el link de pago, abonás seguro con Mercado Pago y el detailer llega a tu puerta.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Experiencias ────────────────────────────────────────────────── -->
+<section id="experiencias">
+  <div class="section-inner">
+    <div class="section-label">Elegí tu experiencia</div>
+    <div class="section-title">Dos formas de brillar</div>
+    <p class="section-sub">Cada cliente es distinto. Elegí la que mejor se adapta a lo que necesitás.</p>
+    <div class="tier-grid">
+
+      <!-- Esencial -->
+      <div class="tier-card esencial">
+        <div class="tier-label">Brillo Esencial</div>
+        <div class="tier-name">Cuidado sin vueltas</div>
+        <p class="tier-desc">Para quien quiere un lavado profesional rápido, coordinado por Brillo. Nosotros elegimos el mejor detailer disponible para tu zona.</p>
+        <ul class="tier-features">
+          <li><span class="tier-check">✓</span> Detailer verificado asignado por Brillo</li>
+          <li><span class="tier-check">✓</span> Precio fijo conocido de antemano</li>
+          <li><span class="tier-check">✓</span> Pago seguro por Mercado Pago</li>
+          <li><span class="tier-check">✓</span> Garantía de resultado</li>
+        </ul>
+        <button class="tier-cta" onclick="openBookingEsencial()">Reservar turno Esencial</button>
+      </div>
+
+      <!-- PRO -->
+      <div class="tier-card pro-tier">
+        <div class="tier-popular">Recomendado</div>
+        <div class="tier-label">Brillo PRO</div>
+        <div class="tier-name">Tu especialista, tu elección</div>
+        <p class="tier-desc">Elegís directamente con qué detailer trabajar. Cada uno tiene su especialidad y fija su precio. Vos decidís.</p>
+        <ul class="tier-features">
+          <li><span class="tier-check">✓</span> Elegís tu detailer favorito</li>
+          <li><span class="tier-check">✓</span> Especialistas en tratamientos premium</li>
+          <li><span class="tier-check">✓</span> Precio del profesional, sin sorpresas</li>
+          <li><span class="tier-check">✓</span> Garantía Brillo incluida</li>
+        </ul>
+        <button class="tier-cta" onclick="document.getElementById('pro').scrollIntoView({behavior:'smooth'})">Ver detailers PRO</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── PRO Providers ──────────────────────────────────────────────── -->
+<section id="pro">
+  <div class="section-inner">
+    <div class="section-label">Detailers PRO</div>
+    <div class="section-title">Conocé a los especialistas</div>
+    <p class="section-sub">Cada uno con su estilo, su especialidad y su precio. Todos verificados por Brillo.</p>
+    <div class="pro-grid" id="pro-grid">
+      <div class="loading-text">Cargando detailers…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Confianza ──────────────────────────────────────────────────── -->
+<section id="confianza">
+  <div class="section-inner">
+    <div class="section-label">Por qué elegirnos</div>
+    <div class="section-title">Tranquilidad de principio a fin</div>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <div class="ico">🔍</div>
+        <h4>Lavadores verificados</h4>
+        <p>Cada lavador pasa por un proceso de validación antes de entrar a la plataforma.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ico">🔒</div>
+        <h4>Pago 100% seguro</h4>
+        <p>Procesamos los pagos con Mercado Pago. Tus datos siempre protegidos.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ico">⭐</div>
+        <h4>Resultado garantizado</h4>
+        <p>Si no quedás conforme, lo solucionamos. Tu satisfacción es nuestra prioridad.</p>
+      </div>
+      <div class="trust-item">
+        <div class="ico">📍</div>
+        <h4>A tu domicilio</h4>
+        <p>No necesitás mover el auto. El lavador va a donde vos estás.</p>
+      </div>
+    </div>
+    <div class="pay-title">Medios de pago</div>
+    <div class="pay-methods">
+
+      <!-- Mercado Pago -->
+      <div class="pm-card" style="background:#009EE3;">
+        <svg viewBox="0 0 56 36" width="56" height="36" xmlns="http://www.w3.org/2000/svg">
+          <text x="28" y="16" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="7.5" font-weight="800">MERCADO</text>
+          <text x="28" y="26" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="7.5" font-weight="800">PAGO</text>
+        </svg>
+      </div>
+
+      <!-- Visa -->
+      <div class="pm-card">
+        <svg width="42" height="14" viewBox="0 0 975 325" xmlns="http://www.w3.org/2000/svg">
+          <g transform="matrix(4.4299631,0,0,4.4299631,-81.165783,-105.04783)">
+            <polygon points="116.145,95.719 97.858,95.719 109.296,24.995 127.582,24.995" fill="#1A1F71"/>
+            <path d="m182.437,26.724c-3.607-1.431-9.328-3.011-16.402-3.011-18.059,0-30.776,9.63-30.854,23.398-.15,10.158,9.105,15.8,16.027,19.187,7.075,3.461,9.48,5.72,9.48,8.805-.072,4.738-5.717,6.922-10.982,6.922-7.301,0-11.213-1.126-17.158-3.762l-2.408-1.13-2.559,15.876c4.289,1.954,12.191,3.688,20.395,3.764,19.188,0,31.68-9.481,31.828-24.153.073-8.051-4.814-14.22-15.35-19.261-6.396-3.236-10.313-5.418-10.313-8.729.075-3.01,3.313-6.093,10.533-6.093,5.945-.151,10.313,1.278,13.622,2.708l1.654.751,2.487-15.272z" fill="#1A1F71"/>
+            <path d="m206.742,70.664c1.506-4.063,7.301-19.788,7.301-19.788-.076.151,1.503-4.138,2.406-6.771l1.278,6.094s3.463,16.929,4.215,20.465c-2.858,0-11.588,0-15.2,0zm22.573-45.669-14.145,0c-4.362,0-7.676,1.278-9.558,5.868l-27.163,64.855,19.188,0s3.159-8.729,3.838-10.609c2.105,0,20.771,0,23.479,0,.525,2.483,2.182,10.609,2.182,10.609l16.932,0-14.753-70.723z" fill="#1A1F71"/>
+            <path d="M82.584,24.995L64.675,73.222l-1.957-9.781C59.407,52.155,49.023,39.893,37.435,33.796l16.404,61.848,19.338,0,28.744-70.649-19.337,0z" fill="#1A1F71"/>
+            <path d="m48.045,24.995-29.422,0-.301,1.429c22.951,5.869,38.151,20.016,44.396,37.02L56.322,30.94c-1.053-4.517-4.289-5.796-8.277-5.945z" fill="#F7A600"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Mastercard -->
+      <div class="pm-card">
+        <svg viewBox="0 0 38 24" width="38" height="24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="12" r="11" fill="#EB001B"/>
+          <circle cx="24" cy="12" r="11" fill="#F79E1B"/>
+          <path d="M19 3.5a11 11 0 0 1 0 17A11 11 0 0 1 19 3.5z" fill="#FF5F00"/>
+        </svg>
+      </div>
+
+      <!-- American Express -->
+      <div class="pm-card" style="background:#016FD0;">
+        <svg viewBox="0 0 56 36" width="56" height="36" xmlns="http://www.w3.org/2000/svg">
+          <text x="28" y="21" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="11" font-weight="900" letter-spacing="1">AMEX</text>
+        </svg>
+      </div>
+
+      <!-- Débito -->
+      <div class="pm-card">
+        <svg viewBox="0 0 56 36" width="56" height="36" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="5" width="44" height="26" rx="4" fill="none" stroke="#4B5563" stroke-width="2"/>
+          <path d="M6 12h44" stroke="#4B5563" stroke-width="2"/>
+          <rect x="10" y="17" width="10" height="5" rx="1.5" fill="#4B5563"/>
+          <text x="28" y="30" text-anchor="middle" fill="#4B5563" font-family="Arial,sans-serif" font-size="6" font-weight="700">DÉBITO</text>
+        </svg>
+      </div>
+
+      <!-- Transferencia -->
+      <div class="pm-card">
+        <svg viewBox="0 0 56 36" width="56" height="36" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 13h32M12 13l6-5M12 13l6 5" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M44 23H12M44 23l-6-5M44 23l-6 5" stroke="#4B5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer>
+  <img src="/logo.png" alt="brillo" style="height:28px;opacity:.7;margin-bottom:8px"><br>
+  Detailing a domicilio en Nordelta y alrededores<br>
+  © 2025 Brillo. Todos los derechos reservados.
+</footer>
+
+<!-- ── Booking Modal ─────────────────────────────────────────────── -->
+<div class="overlay" id="booking-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="booking-modal">
+    <div class="modal-handle"></div>
+
+    <!-- Form -->
+    <div id="booking-form-section">
+      <button class="modal-back" id="modal-back-btn" onclick="resetBooking()" style="display:none">← Volver</button>
+      <h2 id="modal-title">Pedir turno</h2>
+      <p class="modal-sub" id="modal-sub">Completá tus datos y te contactamos a la brevedad.</p>
+
+      <div class="selected-info" id="selected-info"></div>
+
+      <div id="service-select-row">
+        <label>¿Qué servicio necesitás?</label>
+        <select id="booking-service-id">
+          <option value="">— Elegir servicio —</option>
+        </select>
+      </div>
+
+      <label>Tu nombre</label>
+      <input type="text"  id="booking-name"    placeholder="Ej: María González">
+      <label>Tu celular</label>
+      <input type="tel"   id="booking-phone"   placeholder="Ej: 1122334455">
+      <label>Tu dirección</label>
+      <input type="text"  id="booking-address" placeholder="Ej: Los Álamos 1234, Nordelta">
+
+      <div style="display:flex;gap:10px;margin-top:0">
+        <div style="flex:1">
+          <label>Fecha preferida</label>
+          <input type="date" id="booking-date">
+        </div>
+        <div style="flex:1">
+          <label>Horario preferido</label>
+          <select id="booking-time">
+            <option value="">Sin preferencia</option>
+            <option value="08:00">08:00 hs</option>
+            <option value="09:00">09:00 hs</option>
+            <option value="10:00">10:00 hs</option>
+            <option value="11:00">11:00 hs</option>
+            <option value="12:00">12:00 hs</option>
+            <option value="13:00">13:00 hs</option>
+            <option value="14:00">14:00 hs</option>
+            <option value="15:00">15:00 hs</option>
+            <option value="16:00">16:00 hs</option>
+            <option value="17:00">17:00 hs</option>
+            <option value="18:00">18:00 hs</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="modal-submit" id="booking-submit" onclick="submitBooking()">
+        Enviar solicitud
+      </button>
+    </div>
+
+    <!-- Success -->
+    <div class="success-state" id="booking-success">
+      <div class="success-ico">✅</div>
+      <h2>¡Solicitud enviada!</h2>
+      <p>Recibimos tu pedido.<br>Te contactamos pronto al número que dejaste.</p>
+      <button class="success-again" onclick="resetBooking()">Hacer otro pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Chat Widget ─────────────────────────────────────────────── -->
+<button class="chat-btn" id="chat-btn" onclick="toggleChat()" title="Hablar con Brillo">
+  💬
+</button>
+
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-head">
+    <div class="chat-head-left">
+      <div class="chat-av">✨</div>
+      <div>
+        <div class="chat-head-name">Brillo · Asistente</div>
+        <div class="chat-head-sub">En línea ahora</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">×</button>
+  </div>
+  <div class="chat-body" id="chat-body">
+    <!-- Messages rendered by JS -->
+  </div>
+  <div class="chat-input-row" id="chat-input-row">
+    <input class="chat-input" id="chat-input" placeholder="Escribí acá…"
+           onkeydown="if(event.key==='Enter')sendChatInput()">
+    <button class="chat-send" onclick="sendChatInput()">→</button>
+  </div>
+</div>
+
+<script>
+  let allServices  = [];
+  let allPro       = [];
+  let bookingType  = 'standard';
+  let bookingProvId = null;
+
+  /* ── API ────────────────────────────────────────────────────── */
+  async function apiFetch(path) {
+    const r = await fetch(path, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }
+
+  /* ── Load ────────────────────────────────────────────────────── */
+  async function loadData() {
+    try {
+      [allServices, allPro] = await Promise.all([
+        apiFetch('/api/public/services'),
+        apiFetch('/api/public/providers')
+      ]);
+    } catch(e) { allServices = []; allPro = []; }
+    renderPro();
+  }
+
+  /* ── Services grid ───────────────────────────────────────────── */
+  const SVC_ICONS = ['🚿','🪣','✨','🧴','🔮','🧽'];
+  function renderServices() {
+    const el = document.getElementById('services-grid');
+    if (!allServices.length) {
+      el.innerHTML = '<div class="loading-text">Próximamente más servicios.</div>'; return;
+    }
+    el.innerHTML = allServices.map((s, i) => `
+      <div class="svc-card" onclick="openBookingStandard(${s.id},'${esc(s.name)}')">
+        <div class="svc-icon">${SVC_ICONS[i % SVC_ICONS.length]}</div>
+        <h3>${s.name}</h3>
+        <p>${s.description || 'Servicio a domicilio en tu zona.'}</p>
+        <div class="svc-footer">
+          <div class="svc-price">$${fmt(s.fixed_price)}</div>
+          <button class="svc-btn">Pedir turno</button>
+        </div>
+      </div>`).join('');
+  }
+
+  /* ── PRO grid ────────────────────────────────────────────────── */
+  function renderPro() {
+    const el = document.getElementById('pro-grid');
+    if (!allPro.length) {
+      el.innerHTML = '<div class="no-pro">Próximamente detailers PRO disponibles.</div>'; return;
+    }
+    el.innerHTML = allPro.map(p => {
+      const ini = p.name.split(' ').slice(0,2).map(w => w[0].toUpperCase()).join('');
+      return `
+      <div class="pro-card">
+        <div class="pro-header">
+          <div class="pro-av">${ini}</div>
+          <div>
+            <div class="pro-name">${p.name}</div>
+            <div class="pro-zone">📍 ${p.zone}</div>
+          </div>
+        </div>
+        <div class="pro-badge">⭐ Detailer PRO</div>
+        <p class="pro-bio">${p.bio || 'Profesional verificado con experiencia en detailing premium.'}</p>
+        <button class="pro-book" onclick="openBookingPro(${p.id},'${esc(p.name)}')">
+          Reservar con ${p.name.split(' ')[0]}
+        </button>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Booking flow ────────────────────────────────────────────── */
+  function populateServiceSelect() {
+    const sel = document.getElementById('booking-service-id');
+    sel.innerHTML = '<option value="">— Elegir servicio —</option>' +
+      allServices.map(s => `<option value="${s.id}">${s.name} · $${fmt(s.fixed_price)}</option>`).join('');
+  }
+
+  function openBooking() {
+    bookingType  = 'standard';
+    bookingProvId = null;
+    document.getElementById('modal-title').textContent    = 'Pedir turno';
+    document.getElementById('modal-sub').textContent      = 'Completá tus datos y te contactamos.';
+    document.getElementById('service-select-row').style.display = 'none';
+    document.getElementById('selected-info').style.display = 'none';
+    document.getElementById('modal-back-btn').style.display = 'none';
+    document.getElementById('booking-service-id').value = '';
+    showBookingOverlay();
+  }
+
+  function openBookingEsencial() {
+    bookingType  = 'standard';
+    bookingProvId = null;
+    document.getElementById('modal-title').textContent = 'Brillo Esencial';
+    document.getElementById('modal-sub').textContent   = 'Completá tus datos. Nuestro equipo te asigna el mejor detailer disponible.';
+    document.getElementById('service-select-row').style.display = 'none';
+    const info = document.getElementById('selected-info');
+    info.textContent = '✨ Brillo Esencial — lavador asignado por Brillo';
+    info.style.display = 'block';
+    document.getElementById('modal-back-btn').style.display = 'none';
+    document.getElementById('booking-service-id').value = '';
+    showBookingOverlay();
+  }
+
+  function openBookingStandard(sid, name) {
+    bookingType   = 'standard';
+    bookingProvId = null;
+    document.getElementById('modal-title').textContent = 'Pedir turno';
+    document.getElementById('modal-sub').textContent   = 'Completá tus datos y te contactamos.';
+    document.getElementById('service-select-row').style.display = 'none';
+    const info = document.getElementById('selected-info');
+    info.textContent = '🧹 ' + name;
+    info.style.display = 'block';
+    document.getElementById('booking-service-id').value = sid;
+    document.getElementById('modal-back-btn').style.display = 'inline-block';
+    showBookingOverlay();
+  }
+
+  function openBookingPro(pid, name) {
+    bookingType   = 'pro';
+    bookingProvId = pid;
+    document.getElementById('modal-title').textContent = 'Reservar con ' + name.split(' ')[0];
+    document.getElementById('modal-sub').textContent   = 'El detailer te cotiza y confirmamos el precio.';
+    document.getElementById('service-select-row').style.display = 'none';
+    const info = document.getElementById('selected-info');
+    info.textContent = '⭐ Detailer PRO: ' + name;
+    info.style.display = 'block';
+    document.getElementById('modal-back-btn').style.display = 'inline-block';
+    showBookingOverlay();
+  }
+
+  function showBookingOverlay() {
+    document.getElementById('booking-form-section').style.display = 'block';
+    document.getElementById('booking-success').style.display = 'none';
+    document.getElementById('booking-overlay').classList.add('open');
+    document.getElementById('booking-submit').disabled = false;
+    document.getElementById('booking-submit').textContent = 'Enviar solicitud';
+    // Set minimum date to tomorrow
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('booking-date').min = tomorrow.toISOString().slice(0,10);
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('booking-overlay'))
+      document.getElementById('booking-overlay').classList.remove('open');
+  }
+
+  async function submitBooking() {
+    const name    = document.getElementById('booking-name').value.trim();
+    const phone   = document.getElementById('booking-phone').value.trim();
+    const address = document.getElementById('booking-address').value.trim();
+    const sid     = parseInt(document.getElementById('booking-service-id').value) || null;
+
+    if (!name || !phone || !address) {
+      alert('Por favor completá nombre, celular y dirección.'); return;
+    }
+    if (bookingType === 'standard' && !sid) {
+      alert('Por favor elegí un servicio.'); return;
+    }
+
+    const btn = document.getElementById('booking-submit');
+    btn.disabled = true; btn.textContent = 'Enviando…';
+
+    const schedDate = document.getElementById('booking-date').value || null;
+    const schedTime = document.getElementById('booking-time').value || null;
+
+    const body = {
+      name, phone, address,
+      service_type:          bookingType,
+      selected_service_id:   bookingType === 'standard' ? sid        : null,
+      selected_provider_id:  bookingType === 'pro'      ? bookingProvId : null,
+      scheduled_date:        schedDate,
+      scheduled_time:        schedTime
+    };
+
+    try {
+      const r = await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',
+                   'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify(body)
+      });
+      if (r.ok) {
+        document.getElementById('booking-form-section').style.display = 'none';
+        document.getElementById('booking-success').style.display = 'block';
+      } else {
+        const err = await r.json().catch(() => ({}));
+        alert('Error: ' + (err.detail || 'Intentá de nuevo.'));
+        btn.disabled = false; btn.textContent = 'Enviar solicitud';
+      }
+    } catch(e) {
+      alert('No se pudo conectar. Revisá tu conexión.');
+      btn.disabled = false; btn.textContent = 'Enviar solicitud';
+    }
+  }
+
+  function resetBooking() {
+    ['booking-name','booking-phone','booking-address'].forEach(
+      id => document.getElementById(id).value = '');
+    document.getElementById('booking-service-id').value = '';
+    document.getElementById('booking-date').value = '';
+    document.getElementById('booking-time').value = '';
+    document.getElementById('booking-overlay').classList.remove('open');
+    bookingType = 'standard'; bookingProvId = null;
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────────── */
+  function fmt(n) { return Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 }); }
+  function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+
+  /* ── Init ────────────────────────────────────────────────────── */
+  loadData();
+
+  /* ════════════════════════════════════════════════════════════════
+     CHAT WIDGET
+  ════════════════════════════════════════════════════════════════ */
+  let chatOpen    = false;
+  let chatFlow    = null;   // 'track' | 'problem' | null
+  let chatStep    = 0;
+
+  const CHAT_MAIN = [
+    { type: 'msg',  text: 'Hola! Soy el asistente de Brillo. ¿En qué puedo ayudarte?' },
+    { type: 'opts', opts: [
+      { label: '🛁 Quiero pedir un turno',   fn: 'chatBook'   },
+      { label: '📦 Ver mi pedido',            fn: 'chatTrack'  },
+      { label: '⚠️ Tengo un problema',        fn: 'chatProblem'},
+    ]}
+  ];
+
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+    if (chatOpen && document.getElementById('chat-body').children.length === 0) {
+      renderChatMain();
+    }
+  }
+
+  function renderChatMain() {
+    chatFlow = null; chatStep = 0;
+    document.getElementById('chat-input-row').classList.remove('show');
+    const body = document.getElementById('chat-body');
+    body.innerHTML = '';
+    CHAT_MAIN.forEach(item => {
+      if (item.type === 'msg') {
+        appendBotMsg(item.text);
+      } else {
+        appendOpts(item.opts);
+      }
+    });
+  }
+
+  function appendBotMsg(text) {
+    const body = document.getElementById('chat-body');
+    const row  = document.createElement('div');
+    row.className = 'chat-msg';
+    row.innerHTML = `<div class="av">✨</div><div class="chat-bubble">${text}</div>`;
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function appendUserMsg(text) {
+    const body = document.getElementById('chat-body');
+    const row  = document.createElement('div');
+    row.className = 'chat-msg';
+    row.style.flexDirection = 'row-reverse';
+    row.innerHTML = `<div class="chat-bubble" style="background:var(--blue);color:white;
+      border-radius:16px 16px 4px 16px">${text}</div>`;
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function appendOpts(opts) {
+    const body = document.getElementById('chat-body');
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-options';
+    wrap.innerHTML = opts.map(o =>
+      `<button class="chat-opt" onclick="${o.fn}()">${o.label}</button>`
+    ).join('');
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  // ── Flow: Book ──────────────────────────────────────────────────
+  function chatBook() {
+    clearOpts();
+    appendUserMsg('Quiero pedir un turno');
+    appendBotMsg('¡Perfecto! Te llevo directo al formulario de reserva.');
+    setTimeout(() => {
+      toggleChat();
+      openBooking();
+    }, 800);
+  }
+
+  // ── Flow: Track ─────────────────────────────────────────────────
+  function chatTrack() {
+    clearOpts();
+    appendUserMsg('Ver mi pedido');
+    appendBotMsg('¿Cuál es el número de celular con el que hiciste el pedido?');
+    chatFlow = 'track';
+    document.getElementById('chat-input-row').classList.add('show');
+    document.getElementById('chat-input').placeholder = 'Ej: 1122334455';
+    document.getElementById('chat-input').focus();
+  }
+
+  async function sendChatInput() {
+    const val = document.getElementById('chat-input').value.trim();
+    if (!val) return;
+    document.getElementById('chat-input').value = '';
+
+    if (chatFlow === 'track') {
+      appendUserMsg(val);
+      appendBotMsg('Buscando tu pedido…');
+      try {
+        const orders = await apiFetch(`/api/track?phone=${encodeURIComponent(val)}`);
+        document.getElementById('chat-input-row').classList.remove('show');
+        const latest = orders[0];
+        const statusMap = {
+          pending:   '⏳ Pendiente de asignación',
+          assigned:  '👷 Lavador asignado — en camino',
+          completed: '✅ Completado'
+        };
+        const status = statusMap[latest.status] || latest.status;
+        const sched  = latest.scheduled_date
+          ? `📅 Turno: ${latest.scheduled_date} ${latest.scheduled_time || ''}` : '';
+        appendBotMsg(
+          `Encontramos tu pedido #${latest.id}:<br>
+           <b>Servicio:</b> ${latest.service_name || latest.service_type}<br>
+           <b>Dirección:</b> ${latest.address}<br>
+           <b>Estado:</b> ${status}<br>
+           ${sched ? sched + '<br>' : ''}
+           ${latest.payment_status === 'paid' ? '💳 Pagado' : ''}
+          `
+        );
+        if (orders.length > 1) {
+          appendBotMsg(`Tenés ${orders.length} pedidos en total. Mostramos el más reciente.`);
+        }
+        appendOpts([{ label: '🏠 Volver al inicio', fn: 'renderChatMain' }]);
+      } catch(e) {
+        appendBotMsg('No encontramos pedidos con ese número. ¿Es correcto?');
+        appendOpts([
+          { label: 'Intentar de nuevo', fn: 'chatTrack' },
+          { label: '🏠 Menú principal',  fn: 'renderChatMain' }
+        ]);
+      }
+    }
+  }
+
+  // ── Flow: Problem ────────────────────────────────────────────────
+  function chatProblem() {
+    clearOpts();
+    appendUserMsg('Tengo un problema');
+    appendBotMsg(
+      'Lamentamos el inconveniente. Nuestro equipo te va a ayudar.<br><br>' +
+      '📞 Escribinos por WhatsApp o llamanos al número que te enviamos cuando confirmamos tu turno.<br><br>' +
+      '<b>Garantía Brillo:</b> Si el servicio no fue satisfactorio, lo resolvemos sin costo adicional.'
+    );
+    appendOpts([{ label: '🏠 Menú principal', fn: 'renderChatMain' }]);
+  }
+
+  function clearOpts() {
+    document.querySelectorAll('.chat-options').forEach(el => el.remove());
+  }
+</script>
+</body>
+</html>

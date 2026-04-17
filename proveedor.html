@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Cocina · Brillo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:    #2563eb;
+      --blue-dk: #1d4ed8;
+      --blue-lt: #eff6ff;
+      --dark:    #0d1117;
+      --text:    #1e293b;
+      --muted:   #64748b;
+      --border:  #e2e8f0;
+      --green:   #059669;
+      --yellow:  #d97706;
+      --red:     #dc2626;
+    }
+    body {
+      font-family: 'Inter', sans-serif; background: #f8faff;
+      color: var(--text); min-height: 100vh;
+    }
+
+    /* Top bar */
+    .topbar {
+      background: var(--dark); color: white;
+      padding: 0 20px; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; }
+    .topbar-logo img { height: 28px; }
+    .topbar-badge { background: rgba(37,99,235,.3); color: #93c5fd; font-size: 11px;
+                    font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+    /* Provider header */
+    .prov-header {
+      background: linear-gradient(135deg, #0d1117 0%, #0f1f3d 100%);
+      padding: 28px 20px 24px; color: white;
+    }
+    .prov-av-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .prov-av {
+      width: 60px; height: 60px; border-radius: 16px; background: var(--blue);
+      font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .prov-name { font-size: 20px; font-weight: 800; }
+    .prov-zone { font-size: 13px; color: #94a3b8; margin-top: 3px; }
+    .prov-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+    .prov-stat {
+      background: rgba(255,255,255,.07); border-radius: 10px;
+      padding: 10px 16px; text-align: center; flex: 1; min-width: 90px;
+    }
+    .prov-stat .val { font-size: 20px; font-weight: 800; color: white; }
+    .prov-stat .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; margin-top: 2px; }
+
+    /* Warning banner */
+    .warn-banner {
+      background: #fef3c7; border-left: 4px solid #f59e0b;
+      padding: 12px 16px; font-size: 13px; color: #92400e;
+      display: flex; align-items: flex-start; gap: 10px; margin: 16px 16px 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .warn-banner strong { display: block; margin-bottom: 2px; }
+
+    /* Section */
+    .section { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+    .section-title {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; color: var(--muted); margin-bottom: 12px;
+    }
+
+    /* Job card */
+    .job-card {
+      background: white; border-radius: 14px; padding: 18px;
+      margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      border: 1.5px solid var(--border);
+    }
+    .job-card.confirmed { border-color: #bbf7d0; }
+    .job-card.reschedule { border-color: #fde68a; }
+    .job-card-header { display: flex; justify-content: space-between;
+                        align-items: flex-start; margin-bottom: 12px; }
+    .job-id { font-size: 11px; color: var(--muted); }
+
+    /* Badge */
+    .badge {
+      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      display: inline-block;
+    }
+    .badge.pending    { background: #fef3c7; color: #92400e; }
+    .badge.confirmed  { background: #d1fae5; color: #065f46; }
+    .badge.reschedule { background: #fde68a; color: #92400e; }
+    .badge.completed  { background: #dbeafe; color: #1e40af; }
+
+    /* Job details */
+    .job-detail { font-size: 14px; line-height: 1.9; }
+    .job-detail .addr { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .job-detail .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--blue-lt); color: var(--blue); font-size: 12px;
+      font-weight: 600; padding: 4px 10px; border-radius: 6px; margin-right: 6px;
+    }
+    .job-sched {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px;
+      background: #f0fdf4; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: var(--green); font-weight: 600;
+    }
+
+    /* Actions */
+    .job-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 16px; border-radius: 10px; border: none;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif; flex: 1; min-width: 120px; transition: all .2s;
+    }
+    .btn.confirm  { background: var(--green); color: white; }
+    .btn.confirm:hover { background: #047857; }
+    .btn.resched  { background: #fef3c7; color: #92400e; border: 1.5px solid #fde68a; }
+    .btn.resched:hover { background: #fde68a; }
+    .btn:disabled { opacity: .5; cursor: default; }
+
+    /* Empty */
+    .empty {
+      text-align: center; color: var(--muted); padding: 48px 20px;
+      background: white; border-radius: 14px; border: 1.5px dashed var(--border);
+    }
+    .empty .ico { font-size: 36px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; line-height: 1.6; }
+
+    /* Reschedule modal */
+    .overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      z-index: 200; justify-content: center; align-items: flex-end;
+    }
+    .overlay.open { display: flex; }
+    @media (min-width: 600px) { .overlay { align-items: center; } }
+    .modal {
+      background: white; width: 100%; max-width: 440px;
+      border-radius: 20px 20px 0 0; padding: 24px 20px 36px;
+    }
+    @media (min-width: 600px) { .modal { border-radius: 20px; } }
+    .modal h3 { font-size: 17px; font-weight: 800; margin-bottom: 18px; }
+    .modal label { display: block; font-size: 13px; font-weight: 600; color: #374151;
+                   margin-bottom: 6px; margin-top: 14px; }
+    .modal label:first-of-type { margin-top: 0; }
+    .modal input, .modal select {
+      width: 100%; padding: 12px; font-size: 15px; border: 1.5px solid var(--border);
+      border-radius: 10px; outline: none; font-family: 'Inter', sans-serif;
+    }
+    .modal input:focus, .modal select:focus { border-color: var(--blue); }
+    .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px;
+                         font-size: 14px; font-weight: 700; cursor: pointer;
+                         font-family: 'Inter', sans-serif; }
+    .modal-btns .ok     { background: var(--blue); color: white; }
+    .modal-btns .cancel { background: #f1f5f9; color: var(--text); }
+
+    /* Loading */
+    .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="/logo.png" alt="Brillo">
+    Mi Cocina
+  </div>
+  <span class="topbar-badge">Portal Lavador</span>
+</div>
+
+<!-- Content -->
+<div id="app">
+  <div class="loading">Cargando tu agenda…</div>
+</div>
+
+<!-- Reschedule modal -->
+<div class="overlay" id="modal-resched">
+  <div class="modal">
+    <h3>Pedir reprogramación</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+      Proponemos una nueva fecha y hora. El equipo de Brillo la confirmará con el cliente.
+    </p>
+    <input type="hidden" id="resched-rid">
+    <label>Nueva fecha</label>
+    <input type="date" id="resched-date">
+    <label>Nueva hora</label>
+    <select id="resched-time">
+      <option value="08:00">08:00 hs</option>
+      <option value="09:00">09:00 hs</option>
+      <option value="10:00">10:00 hs</option>
+      <option value="11:00">11:00 hs</option>
+      <option value="12:00">12:00 hs</option>
+      <option value="13:00">13:00 hs</option>
+      <option value="14:00">14:00 hs</option>
+      <option value="15:00">15:00 hs</option>
+      <option value="16:00">16:00 hs</option>
+      <option value="17:00">17:00 hs</option>
+      <option value="18:00">18:00 hs</option>
+    </select>
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeResched()">Cancelar</button>
+      <button class="ok"     onclick="confirmResched()">Enviar solicitud</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TOKEN = location.pathname.split('/').pop();
+  let provData = null;
+  let jobs     = [];
+
+  /* ── API ───────────────────────────────────────────────── */
+  async function api(path, opts = {}) {
+    const headers = { 'Content-Type': 'application/json',
+                      'ngrok-skip-browser-warning': 'true', ...(opts.headers||{}) };
+    const r = await fetch(path, { ...opts, headers });
+    if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.detail||r.status); }
+    return r.json();
+  }
+
+  /* ── Load ──────────────────────────────────────────────── */
+  async function load() {
+    try {
+      const data = await api(`/api/proveedor/${TOKEN}/jobs`);
+      provData = data.provider;
+      jobs     = data.jobs;
+      render();
+    } catch(e) {
+      document.getElementById('app').innerHTML =
+        `<div class="section"><div class="empty"><div class="ico">⚠️</div>
+        <p>No se pudo cargar tu agenda.<br>${e.message}</p></div></div>`;
+    }
+  }
+
+  /* ── Render ────────────────────────────────────────────── */
+  function render() {
+    const ini = provData.name.split(' ').slice(0,2).map(w => w[0].toUpperCase()).join('');
+    const upcoming = jobs.filter(j => j.status === 'assigned');
+    const done     = jobs.filter(j => j.status === 'completed');
+
+    let html = `
+    <div class="prov-header">
+      <div class="prov-av-row">
+        <div class="prov-av">${ini}</div>
+        <div>
+          <div class="prov-name">${provData.name}</div>
+          <div class="prov-zone">📍 ${provData.zone}</div>
+        </div>
+      </div>
+      <div class="prov-stats">
+        <div class="prov-stat">
+          <div class="val">${upcoming.length}</div>
+          <div class="lbl">Próximos</div>
+        </div>
+        <div class="prov-stat">
+          <div class="val">${done.length}</div>
+          <div class="lbl">Completados</div>
+        </div>
+        <div class="prov-stat">
+          <div class="val">${provData.noshow_count || 0}</div>
+          <div class="lbl">No-shows</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:12px 16px;
+                font-size:13px;color:#92400e;display:flex;align-items:flex-start;gap:10px;
+                margin:16px 16px 0;border-radius:0 8px 8px 0;">
+      <span style="font-size:16px;margin-top:1px">⚠️</span>
+      <div>
+        <strong>Regla de Brillo</strong>
+        No contactes al cliente directamente. Toda comunicación va a través de Brillo.
+      </div>
+    </div>`;
+
+    /* Upcoming jobs */
+    html += `<div class="section">
+      <div class="section-title">Trabajos asignados</div>`;
+
+    if (!upcoming.length) {
+      html += `<div class="empty">
+        <div class="ico">📅</div>
+        <p>No tenés trabajos asignados por ahora.<br>El equipo de Brillo te notificará cuando tengás uno nuevo.</p>
+      </div>`;
+    } else {
+      html += upcoming.map(j => jobCard(j)).join('');
+    }
+    html += `</div>`;
+
+    /* Completed jobs */
+    if (done.length) {
+      html += `<div class="section">
+        <div class="section-title">Trabajos realizados</div>
+        ${done.map(j => jobCardDone(j)).join('')}
+      </div>`;
+    }
+
+    document.getElementById('app').innerHTML = html;
+  }
+
+  function jobCard(j) {
+    const confirmState = j.provider_confirmation || 'pending';
+    const badgeMap = {
+      pending:               '<span class="badge pending">Pendiente confirmación</span>',
+      confirmed:             '<span class="badge confirmed">Confirmado ✓</span>',
+      reschedule_requested:  '<span class="badge reschedule">Reprogramación solicitada</span>',
+    };
+    const badge = badgeMap[confirmState] || '';
+
+    const sched = j.scheduled_date
+      ? `<div class="job-sched">📅 ${fmtDate(j.scheduled_date)} · ${j.scheduled_time || ''} hs</div>`
+      : `<div class="job-sched" style="color:#64748b;background:#f8faff">📅 Fecha a confirmar por Brillo</div>`;
+
+    const canConfirm  = confirmState !== 'confirmed';
+    const canResched  = confirmState !== 'reschedule_requested';
+
+    return `
+    <div class="job-card ${confirmState === 'confirmed' ? 'confirmed' : confirmState === 'reschedule_requested' ? 'reschedule' : ''}">
+      <div class="job-card-header">
+        <span class="job-id">Trabajo #${j.id} · ${j.created_at.slice(0,10)}</span>
+        ${badge}
+      </div>
+      <div class="job-detail">
+        <div class="addr">📍 ${j.address}</div>
+        ${j.service_name ? `<span class="chip">🧹 ${j.service_name}</span>` : ''}
+        <span class="chip">${j.service_type.toUpperCase()}</span>
+      </div>
+      ${sched}
+      <div class="job-actions">
+        <button class="btn confirm" onclick="confirmJob(${j.id})" ${canConfirm ? '' : 'disabled'}>
+          ${confirmState === 'confirmed' ? '✓ Confirmado' : 'Confirmar asistencia'}
+        </button>
+        <button class="btn resched" onclick="openResched(${j.id})" ${canResched ? '' : 'disabled'}>
+          Reprogramar
+        </button>
+      </div>
+    </div>`;
+  }
+
+  function jobCardDone(j) {
+    return `
+    <div class="job-card">
+      <div class="job-card-header">
+        <span class="job-id">Trabajo #${j.id} · ${j.created_at.slice(0,10)}</span>
+        <span class="badge completed">Completado</span>
+      </div>
+      <div class="job-detail">
+        <div class="addr">📍 ${j.address}</div>
+        ${j.service_name ? `<span class="chip">🧹 ${j.service_name}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  /* ── Actions ────────────────────────────────────────────── */
+  async function confirmJob(rid) {
+    try {
+      await api(`/api/proveedor/${TOKEN}/jobs/${rid}/confirm`, { method: 'PATCH' });
+      await load();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  function openResched(rid) {
+    document.getElementById('resched-rid').value = rid;
+    // Default date: tomorrow
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('resched-date').value = tomorrow.toISOString().slice(0,10);
+    document.getElementById('resched-date').min   = tomorrow.toISOString().slice(0,10);
+    document.getElementById('modal-resched').classList.add('open');
+  }
+
+  function closeResched() {
+    document.getElementById('modal-resched').classList.remove('open');
+  }
+
+  async function confirmResched() {
+    const rid  = parseInt(document.getElementById('resched-rid').value);
+    const date = document.getElementById('resched-date').value;
+    const time = document.getElementById('resched-time').value;
+    if (!date) { alert('Elegí una fecha.'); return; }
+    closeResched();
+    try {
+      await api(`/api/proveedor/${TOKEN}/jobs/${rid}/reschedule`, {
+        method: 'PATCH',
+        body: JSON.stringify({ scheduled_date: date, scheduled_time: time })
+      });
+      await load();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  document.getElementById('modal-resched').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-resched')) closeResched();
+  });
+
+  /* ── Helpers ────────────────────────────────────────────── */
+  function fmtDate(d) {
+    if (!d) return '—';
+    const [y,m,day] = d.split('-');
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  /* ── Init ───────────────────────────────────────────────── */
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Datos sensibles
+.env
+*.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+claudecode.py
+
+# Ngrok
+*.log
+
+# Windows
+Thumbs.db
+Desktop.ini

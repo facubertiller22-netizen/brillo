@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Lavadero Nordelta</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    /* Top bar */
+    .topbar { background: #1a1a2e; color: white; padding: 14px 20px;
+              display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 17px; }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    .refresh-btn { background: none; border: 1px solid #555; border-radius: 8px;
+                   padding: 6px 12px; font-size: 13px; cursor: pointer; color: #ccc; }
+    .refresh-btn:hover { background: #333; }
+
+    /* Tabs */
+    .tabs { display: flex; background: white; border-bottom: 2px solid #e0e0e0; overflow-x: auto; }
+    .tab { padding: 13px 20px; font-size: 14px; font-weight: bold; color: #888;
+           cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+           white-space: nowrap; }
+    .tab.active { color: #4361ee; border-bottom-color: #4361ee; }
+
+    /* Content */
+    .pane { display: none; padding: 16px; max-width: 750px; margin: 0 auto; }
+    .pane.active { display: block; }
+
+    /* Filters */
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-btn { padding: 7px 14px; border-radius: 20px; border: 2px solid #e0e0e0;
+                  background: white; font-size: 12px; font-weight: bold; cursor: pointer;
+                  color: #555; transition: all .2s; }
+    .filter-btn.active { background: #4361ee; color: white; border-color: #4361ee; }
+
+    /* Cards */
+    .card { background: white; border-radius: 14px; padding: 16px;
+            margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+    .card-header { display: flex; justify-content: space-between;
+                   align-items: flex-start; margin-bottom: 10px; }
+    .card-id { font-size: 11px; color: #aaa; }
+    .badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    /* Badges */
+    .badge { font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 10px; }
+    .badge.pending   { background: #fff3cd; color: #856404; }
+    .badge.assigned  { background: #cfe2ff; color: #084298; }
+    .badge.completed { background: #d1e7dd; color: #0a3622; }
+    .badge.paid      { background: #d1e7dd; color: #0a3622; }
+    .badge.unpaid    { background: #f8d7da; color: #842029; }
+    .badge.standard  { background: #e2e3e5; color: #383d41; }
+    .badge.pro       { background: #fff3cd; color: #856404; }
+    .badge.active-svc{ background: #d1e7dd; color: #0a3622; }
+    .badge.inactive  { background: #e2e3e5; color: #666; }
+
+    /* Card body */
+    .card-body { font-size: 14px; color: #333; line-height: 1.8; }
+    .card-body strong { color: #1a1a2e; }
+
+    /* Finance row */
+    .finance { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px;
+               background: #f8f9fa; border-radius: 10px; padding: 10px 14px; font-size: 13px; }
+    .finance .fi { text-align: center; }
+    .finance .fi .val { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+    .finance .fi .lbl { font-size: 10px; color: #888; text-transform: uppercase; margin-top: 2px; }
+
+    /* Actions */
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .btn-action { padding: 8px 14px; border-radius: 8px; border: none; font-size: 13px;
+                  font-weight: bold; cursor: pointer; transition: opacity .2s; }
+    .btn-action:hover { opacity: .85; }
+    .btn-action.assign   { background: #4361ee; color: white; }
+    .btn-action.complete { background: #198754; color: white; }
+    .btn-action.payment  { background: #0d6efd; color: white; }
+    .btn-action.copy     { background: #6c757d; color: white; }
+    .btn-action.danger   { background: #dc3545; color: white; }
+    .btn-action.edit     { background: #f0f4f8; color: #333; border: 1px solid #ddd; }
+
+    /* Provider card */
+    .prov-card { background: white; border-radius: 14px; padding: 16px;
+                 margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07);
+                 display: flex; align-items: flex-start; gap: 14px; }
+    .av { width: 48px; height: 48px; border-radius: 50%; background: #4361ee; color: white;
+          font-size: 17px; font-weight: bold; display: flex; align-items: center;
+          justify-content: center; flex-shrink: 0; }
+    .av.pro { background: #e0a800; }
+    .prov-info { flex: 1; font-size: 14px; color: #333; line-height: 1.6; }
+    .prov-info strong { color: #1a1a2e; font-size: 15px; }
+
+    /* Service card */
+    .svc-card { background: white; border-radius: 14px; padding: 16px;
+                margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07);
+                display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .svc-info { flex: 1; }
+    .svc-info strong { font-size: 15px; color: #1a1a2e; }
+    .svc-info p { font-size: 13px; color: #888; margin-top: 3px; }
+    .svc-price { font-size: 22px; font-weight: bold; color: #4361ee; white-space: nowrap; }
+
+    /* Add button */
+    .add-btn { width: 100%; padding: 13px; background: #4361ee; color: white;
+               font-size: 15px; font-weight: bold; border: none; border-radius: 12px;
+               cursor: pointer; margin-bottom: 16px; }
+    .add-btn:hover { background: #3451d1; }
+
+    /* Empty */
+    .empty { text-align: center; color: #aaa; font-size: 14px; padding: 40px 0; }
+
+    /* Stats bar */
+    .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .stat-box { flex: 1; min-width: 100px; background: white; border-radius: 12px;
+                padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center; }
+    .stat-box .val { font-size: 24px; font-weight: bold; color: #1a1a2e; }
+    .stat-box .lbl { font-size: 11px; color: #888; text-transform: uppercase; margin-top: 4px; }
+
+    /* Overlay / Modal */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
+               z-index: 100; justify-content: center; align-items: flex-end;
+               padding: 0; }
+    .overlay.open { display: flex; }
+    .modal { background: white; border-radius: 20px 20px 0 0; padding: 24px 20px 32px;
+             width: 100%; max-width: 480px; margin: 0 auto; }
+    .modal h3 { font-size: 17px; margin-bottom: 18px; color: #1a1a2e; }
+    .modal label { display: block; font-size: 13px; font-weight: bold; color: #333;
+                   margin-bottom: 5px; margin-top: 12px; }
+    .modal label:first-of-type { margin-top: 0; }
+    .modal input, .modal select, .modal textarea {
+      width: 100%; padding: 12px; font-size: 15px; border: 2px solid #e0e0e0;
+      border-radius: 10px; outline: none; font-family: Arial, sans-serif; }
+    .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: #4361ee; }
+    .modal textarea { resize: none; height: 80px; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px;
+                         font-size: 15px; font-weight: bold; cursor: pointer; }
+    .modal-btns .ok     { background: #4361ee; color: white; }
+    .modal-btns .cancel { background: #e0e0e0; color: #333; }
+    .hint-text { font-size: 11px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Lavadero Nordelta · Admin</h1>
+  <div class="topbar-right">
+    <button class="refresh-btn" onclick="loadAll()">↺ Actualizar</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="tab-req"  onclick="switchTab('req')">Pedidos</div>
+  <div class="tab"        id="tab-prov" onclick="switchTab('prov')">Lavadores</div>
+  <div class="tab"        id="tab-svc"  onclick="switchTab('svc')">Servicios</div>
+</div>
+
+<!-- ══ PEDIDOS ═══════════════════════════════════════════════════════════════ -->
+<div id="pane-req" class="pane active">
+  <div class="stats" id="stats-row">
+    <div class="stat-box"><div class="val" id="st-total">—</div><div class="lbl">Total</div></div>
+    <div class="stat-box"><div class="val" id="st-pending">—</div><div class="lbl">Pendientes</div></div>
+    <div class="stat-box"><div class="val" id="st-commission">—</div><div class="lbl">Comision acum.</div></div>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+    <button class="filter-btn"        onclick="setFilter('pending',this)">Pendientes</button>
+    <button class="filter-btn"        onclick="setFilter('assigned',this)">Asignados</button>
+    <button class="filter-btn"        onclick="setFilter('completed',this)">Completados</button>
+    <button class="filter-btn"        onclick="setFilter('standard',this)">Standard</button>
+    <button class="filter-btn"        onclick="setFilter('pro',this)">PRO</button>
+  </div>
+  <div id="req-list"><div class="empty">Cargando…</div></div>
+</div>
+
+<!-- ══ LAVADORES ══════════════════════════════════════════════════════════════ -->
+<div id="pane-prov" class="pane">
+  <button class="add-btn" onclick="openModal('modal-add-prov')">+ Agregar lavador</button>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setProvFilter('all',this)">Todos</button>
+    <button class="filter-btn"        onclick="setProvFilter('standard',this)">Standard</button>
+    <button class="filter-btn"        onclick="setProvFilter('pro',this)">PRO</button>
+  </div>
+  <div id="prov-list"><div class="empty">Cargando…</div></div>
+</div>
+
+<!-- ══ SERVICIOS ══════════════════════════════════════════════════════════════ -->
+<div id="pane-svc" class="pane">
+  <button class="add-btn" onclick="openModal('modal-add-svc')">+ Agregar servicio</button>
+  <div id="svc-list"><div class="empty">Cargando…</div></div>
+</div>
+
+<!-- ──────────────── MODALS ──────────────────────────────────────────────── -->
+
+<!-- Asignar lavador -->
+<div class="overlay" id="modal-assign">
+  <div class="modal">
+    <h3>Asignar lavador</h3>
+    <label>Seleccionar lavador</label>
+    <select id="assign-select"></select>
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-assign')">Cancelar</button>
+      <button class="ok"     onclick="confirmAssign()">Asignar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generar pago -->
+<div class="overlay" id="modal-payment">
+  <div class="modal">
+    <h3>Generar link de pago</h3>
+    <label>Precio total (ARS $)</label>
+    <input type="number" id="payment-price" placeholder="Ej: 7500" min="1">
+    <p class="hint-text" id="payment-hint"></p>
+    <div id="payment-preview" style="display:none" class="finance" style="margin-top:12px">
+      <div class="fi"><div class="val" id="prev-total">—</div><div class="lbl">Total</div></div>
+      <div class="fi"><div class="val" id="prev-commission">—</div><div class="lbl">Comision nuestra</div></div>
+      <div class="fi"><div class="val" id="prev-payout">—</div><div class="lbl">Pago lavador</div></div>
+    </div>
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-payment')">Cancelar</button>
+      <button class="ok"     onclick="confirmPayment()">Crear link</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar servicio -->
+<div class="overlay" id="modal-add-svc">
+  <div class="modal">
+    <h3>Nuevo servicio standard</h3>
+    <label>Nombre</label>
+    <input type="text" id="svc-name" placeholder="Ej: Lavado completo">
+    <label>Descripción</label>
+    <input type="text" id="svc-desc" placeholder="Ej: Interior + exterior">
+    <label>Precio fijo (ARS $)</label>
+    <input type="number" id="svc-price" placeholder="Ej: 7500" min="1">
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-add-svc')">Cancelar</button>
+      <button class="ok"     onclick="confirmAddService()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Editar servicio -->
+<div class="overlay" id="modal-edit-svc">
+  <div class="modal">
+    <h3>Editar servicio</h3>
+    <input type="hidden" id="edit-svc-id">
+    <label>Nombre</label>
+    <input type="text" id="edit-svc-name">
+    <label>Descripción</label>
+    <input type="text" id="edit-svc-desc">
+    <label>Precio fijo (ARS $)</label>
+    <input type="number" id="edit-svc-price" min="1">
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-edit-svc')">Cancelar</button>
+      <button class="ok"     onclick="confirmEditService()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agregar lavador -->
+<div class="overlay" id="modal-add-prov">
+  <div class="modal">
+    <h3>Nuevo lavador</h3>
+    <label>Nombre</label>
+    <input type="text" id="prov-name" placeholder="Ej: Carlos Gómez">
+    <label>Celular</label>
+    <input type="tel" id="prov-phone" placeholder="Ej: 1155667788">
+    <label>Zona</label>
+    <input type="text" id="prov-zone" placeholder="Ej: Nordelta, Tigre">
+    <label>Presentación</label>
+    <textarea id="prov-bio" placeholder="Ej: 5 años lavando, uso productos premium."></textarea>
+    <label>Tipo</label>
+    <select id="prov-type">
+      <option value="0">Standard (nosotros controlamos precio)</option>
+      <option value="1">PRO (precio propio + comisión)</option>
+    </select>
+    <div id="commission-row" style="display:none">
+      <label>Comisión % (nuestra)</label>
+      <input type="number" id="prov-commission" value="20" min="0" max="100">
+    </div>
+    <label>Notas internas</label>
+    <input type="text" id="prov-notes" placeholder="Solo visible para admin">
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-add-prov')">Cancelar</button>
+      <button class="ok"     onclick="confirmAddProvider()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── State ─────────────────────────────────────────────────── */
+  let allRequests  = [];
+  let allProviders = [];
+  let allServices  = [];
+  let reqFilter    = 'all';
+  let provFilter   = 'all';
+  let targetRid    = null;
+  let targetPayRid = null;
+  let targetPayType = null;
+  let targetPayProv = null;
+
+  /* ── API helper ────────────────────────────────────────────── */
+  async function api(path, opts = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+      ...(opts.headers || {})
+    };
+    const res = await fetch(path, { ...opts, headers });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt);
+    }
+    return res.json();
+  }
+
+  /* ── Load all data ──────────────────────────────────────────── */
+  async function loadAll() {
+    try {
+      [allRequests, allProviders, allServices] = await Promise.all([
+        api('/api/requests'),
+        api('/api/providers'),
+        api('/api/services')
+      ]);
+      renderStats();
+      renderRequests();
+      renderProviders();
+      renderServices();
+    } catch(e) {
+      console.error(e);
+      ['req-list','prov-list','svc-list'].forEach(id => {
+        document.getElementById(id).innerHTML =
+          '<div class="empty">Error cargando datos. Revisá la consola.</div>';
+      });
+    }
+  }
+
+  /* ── Stats ──────────────────────────────────────────────────── */
+  function renderStats() {
+    document.getElementById('st-total').textContent   = allRequests.length;
+    document.getElementById('st-pending').textContent =
+      allRequests.filter(r => r.status === 'pending').length;
+    const comm = allRequests.reduce((s,r) => s + (r.commission_amount || 0), 0);
+    document.getElementById('st-commission').textContent =
+      '$' + comm.toLocaleString('es-AR', {maximumFractionDigits: 0});
+  }
+
+  /* ── Requests ───────────────────────────────────────────────── */
+  function setFilter(f, btn) {
+    reqFilter = f;
+    document.querySelectorAll('#pane-req .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderRequests();
+  }
+
+  function renderRequests() {
+    const el = document.getElementById('req-list');
+    let list = allRequests;
+    if (reqFilter === 'standard' || reqFilter === 'pro') {
+      list = list.filter(r => r.service_type === reqFilter);
+    } else if (reqFilter !== 'all') {
+      list = list.filter(r => r.status === reqFilter);
+    }
+    if (!list.length) { el.innerHTML = '<div class="empty">Sin pedidos en esta categoría.</div>'; return; }
+    el.innerHTML = list.map(r => {
+      const prov  = allProviders.find(p => p.id === r.selected_provider_id);
+      const svc   = allServices.find(s => s.id === r.selected_service_id);
+
+      // badges
+      const typeBadge = `<span class="badge ${r.service_type}">${r.service_type.toUpperCase()}</span>`;
+      const stBadge   = `<span class="badge ${r.status}">${statusLabel(r.status)}</span>`;
+      const payBadge  = r.payment_status === 'paid'
+        ? '<span class="badge paid">Pagado</span>'
+        : r.payment_link ? '<span class="badge unpaid">Link enviado</span>' : '';
+
+      // service / provider info
+      const svcLine  = svc  ? `🧹 ${svc.name}` : '';
+      const provLine = prov ? `👷 ${prov.name} (${prov.is_pro ? 'PRO' : 'Standard'})` : '';
+      // scheduling
+      const schedLine = r.scheduled_date
+        ? `📅 ${r.scheduled_date}${r.scheduled_time ? ' · ' + r.scheduled_time + ' hs' : ''}` : '';
+      // provider confirmation
+      const confMap = { pending: '⏳ Sin confirmar', confirmed: '✅ Confirmado', reschedule_requested: '🔄 Reprogramar' };
+      const confLine = prov && r.provider_confirmation ? confMap[r.provider_confirmation] || '' : '';
+
+      // finance row (only if we have price)
+      let finRow = '';
+      if (r.final_price) {
+        finRow = `
+        <div class="finance">
+          <div class="fi">
+            <div class="val">$${fmt(r.final_price)}</div>
+            <div class="lbl">Total cliente</div>
+          </div>
+          ${r.service_type === 'pro' ? `
+          <div class="fi">
+            <div class="val">$${fmt(r.commission_amount)}</div>
+            <div class="lbl">Nuestra comisión</div>
+          </div>
+          <div class="fi">
+            <div class="val">$${fmt(r.provider_payout)}</div>
+            <div class="lbl">Pago lavador</div>
+          </div>` : `
+          <div class="fi">
+            <div class="val">$${fmt(r.final_price)}</div>
+            <div class="lbl">Ingreso nuestro</div>
+          </div>`}
+        </div>`;
+      }
+
+      // actions
+      let acts = '';
+      if (r.status === 'pending')
+        acts += `<button class="btn-action assign" onclick="openAssign(${r.id})">Asignar lavador</button>`;
+      if (r.status === 'assigned') {
+        acts += `<button class="btn-action complete" onclick="markComplete(${r.id})">Completado</button>`;
+        acts += `<button class="btn-action danger"   onclick="markNoshow(${r.id})">No-show</button>`;
+      }
+      if (r.payment_status !== 'paid')
+        acts += `<button class="btn-action payment" onclick="openPayment(${r.id},'${r.service_type}',${r.selected_provider_id||'null'})">Generar pago</button>`;
+      if (r.payment_link)
+        acts += `<button class="btn-action copy" onclick="copyLink('${r.payment_link}')">Copiar link</button>`;
+
+      return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-id">#${r.id} · ${r.created_at.slice(0,16).replace('T',' ')}</span>
+          <div class="badges">${payBadge}${typeBadge}${stBadge}</div>
+        </div>
+        <div class="card-body">
+          <strong>${r.name}</strong> · ${r.phone}<br>
+          📍 ${r.address}<br>
+          ${svcLine  ? svcLine  + '<br>' : ''}
+          ${schedLine? schedLine + '<br>' : ''}
+          ${provLine ? provLine + (confLine ? ' · ' + confLine : '') : ''}
+        </div>
+        ${finRow}
+        ${acts ? `<div class="card-actions">${acts}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Providers ──────────────────────────────────────────────── */
+  function setProvFilter(f, btn) {
+    provFilter = f;
+    document.querySelectorAll('#pane-prov .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderProviders();
+  }
+
+  function renderProviders() {
+    const el = document.getElementById('prov-list');
+    let list = allProviders;
+    if (provFilter === 'pro')      list = list.filter(p => p.is_pro);
+    if (provFilter === 'standard') list = list.filter(p => !p.is_pro);
+    if (!list.length) { el.innerHTML = '<div class="empty">Sin lavadores en esta categoría.</div>'; return; }
+    el.innerHTML = list.map(p => {
+      const ini     = p.name.split(' ').slice(0,2).map(w => w[0].toUpperCase()).join('');
+      const tier    = p.is_pro ? '<span class="badge pro">PRO</span>' : '<span class="badge standard">Standard</span>';
+      const avail   = p.availability || 'available';
+      const nsCount = p.noshow_count || 0;
+      const portalLink = p.provider_token
+        ? `<a href="/proveedor/${p.provider_token}" target="_blank"
+             style="display:inline-block;margin-top:6px;font-size:12px;color:#4361ee;font-weight:bold;">
+             🔗 Ver portal del lavador
+           </a>`
+        : '';
+      return `
+      <div class="prov-card">
+        <div class="av ${p.is_pro ? 'pro' : ''}">${ini}</div>
+        <div class="prov-info">
+          <strong>${p.name}</strong> ${tier}<br>
+          📞 ${p.phone} · 📍 ${p.zone}<br>
+          ${p.is_pro ? `Comisión: <b>${p.commission_pct}%</b> · ` : ''}
+          Disponibilidad: <b>${avail}</b>
+          ${nsCount > 0 ? ` · <span style="color:#dc3545">⚠️ ${nsCount} no-show${nsCount>1?'s':''}</span>` : ''}<br>
+          ${p.notes ? `<span style="color:#888;font-size:12px">Nota: ${p.notes}</span><br>` : ''}
+          ${portalLink}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── Services ───────────────────────────────────────────────── */
+  function renderServices() {
+    const el = document.getElementById('svc-list');
+    if (!allServices.length) { el.innerHTML = '<div class="empty">No hay servicios cargados.</div>'; return; }
+    el.innerHTML = allServices.map(s => `
+      <div class="svc-card">
+        <div class="svc-info">
+          <strong>${s.name}</strong>
+          <span class="badge ${s.active ? 'active-svc' : 'inactive'}" style="margin-left:8px">
+            ${s.active ? 'Activo' : 'Inactivo'}
+          </span>
+          ${s.description ? `<p>${s.description}</p>` : ''}
+        </div>
+        <div style="text-align:right">
+          <div class="svc-price">$${fmt(s.fixed_price)}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
+            <button class="btn-action edit" onclick="openEditService(${s.id},'${esc(s.name)}','${esc(s.description)}',${s.fixed_price})">Editar</button>
+            <button class="btn-action danger" onclick="toggleService(${s.id},${s.active})">${s.active ? 'Desactivar' : 'Activar'}</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  /* ── Actions: Requests ──────────────────────────────────────── */
+  function openAssign(rid) {
+    targetRid = rid;
+    const sel = document.getElementById('assign-select');
+    sel.innerHTML = allProviders.length
+      ? allProviders.map(p =>
+          `<option value="${p.id}">${p.name} · ${p.zone} · ${p.is_pro ? 'PRO' : 'Std'}</option>`
+        ).join('')
+      : '<option value="">Sin lavadores registrados</option>';
+    openModal('modal-assign');
+  }
+
+  async function confirmAssign() {
+    const pid = parseInt(document.getElementById('assign-select').value);
+    if (!pid) return;
+    closeModal('modal-assign');
+    try {
+      await api(`/api/requests/${targetRid}/assign`, {
+        method: 'PATCH', body: JSON.stringify({ provider_id: pid })
+      });
+      await loadAll();
+    } catch(e) { alert('Error al asignar: ' + e.message); }
+  }
+
+  async function markComplete(rid) {
+    try {
+      await api(`/api/requests/${rid}/status`, {
+        method: 'PATCH', body: JSON.stringify({ status: 'completed' })
+      });
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function markNoshow(rid) {
+    if (!confirm('¿Confirmar no-show? El pedido se reabre y el lavador queda registrado.')) return;
+    try {
+      const data = await api(`/api/requests/${rid}/noshow`, { method: 'POST' });
+      alert(`No-show registrado. ${data.message}`);
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  function openPayment(rid, type, provId) {
+    targetPayRid  = rid;
+    targetPayType = type;
+    targetPayProv = provId;
+
+    // pre-fill hint and preview
+    const hint = document.getElementById('payment-hint');
+    const prev = document.getElementById('payment-preview');
+    prev.style.display = 'none';
+    document.getElementById('payment-price').value = '';
+
+    if (type === 'standard') {
+      const req = allRequests.find(r => r.id === rid);
+      const svc = req ? allServices.find(s => s.id === req.selected_service_id) : null;
+      hint.textContent = svc ? `Precio fijo del servicio: $${fmt(svc.fixed_price)}` : '';
+      if (svc) document.getElementById('payment-price').value = svc.fixed_price;
+    } else {
+      const prov = allProviders.find(p => p.id === provId);
+      hint.textContent = prov ? `Proveedor PRO · Comisión: ${prov.commission_pct}%` : '';
+    }
+    openModal('modal-payment');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('payment-price').addEventListener('input', updatePaymentPreview);
+  });
+
+  function updatePaymentPreview() {
+    const price = parseFloat(document.getElementById('payment-price').value);
+    const prev  = document.getElementById('payment-preview');
+    if (!price || price <= 0 || targetPayType !== 'pro') { prev.style.display = 'none'; return; }
+    const prov = allProviders.find(p => p.id === targetPayProv);
+    const pct  = prov ? prov.commission_pct : 20;
+    const comm = (price * pct / 100).toFixed(2);
+    const pay  = (price - comm).toFixed(2);
+    document.getElementById('prev-total').textContent      = '$' + fmt(price);
+    document.getElementById('prev-commission').textContent = '$' + fmt(comm);
+    document.getElementById('prev-payout').textContent     = '$' + fmt(pay);
+    prev.style.display = 'flex';
+  }
+
+  async function confirmPayment() {
+    const price = parseFloat(document.getElementById('payment-price').value);
+    if (!price || price <= 0) { alert('Ingresá un precio válido.'); return; }
+    closeModal('modal-payment');
+    try {
+      const data = await api(`/api/requests/${targetPayRid}/payment`, {
+        method: 'POST', body: JSON.stringify({ price })
+      });
+      alert(`Link generado:\n${data.payment_link}\n\nComisión nuestra: $${data.commission_amount}\nPago lavador: $${data.provider_payout}`);
+      await loadAll();
+    } catch(e) { alert('Error al generar pago: ' + e.message); }
+  }
+
+  function copyLink(link) {
+    navigator.clipboard.writeText(link)
+      .then(() => alert('Link copiado al portapapeles.'))
+      .catch(() => prompt('Copiá el link:', link));
+  }
+
+  /* ── Actions: Services ──────────────────────────────────────── */
+  async function confirmAddService() {
+    const name  = document.getElementById('svc-name').value.trim();
+    const desc  = document.getElementById('svc-desc').value.trim();
+    const price = parseFloat(document.getElementById('svc-price').value);
+    if (!name || !price) { alert('Completá nombre y precio.'); return; }
+    closeModal('modal-add-svc');
+    try {
+      await api('/api/services', {
+        method: 'POST', body: JSON.stringify({ name, description: desc, fixed_price: price })
+      });
+      ['svc-name','svc-desc','svc-price'].forEach(id => document.getElementById(id).value = '');
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  function openEditService(id, name, desc, price) {
+    document.getElementById('edit-svc-id').value    = id;
+    document.getElementById('edit-svc-name').value  = name;
+    document.getElementById('edit-svc-desc').value  = desc;
+    document.getElementById('edit-svc-price').value = price;
+    openModal('modal-edit-svc');
+  }
+
+  async function confirmEditService() {
+    const id    = parseInt(document.getElementById('edit-svc-id').value);
+    const name  = document.getElementById('edit-svc-name').value.trim();
+    const desc  = document.getElementById('edit-svc-desc').value.trim();
+    const price = parseFloat(document.getElementById('edit-svc-price').value);
+    if (!name || !price) { alert('Completá nombre y precio.'); return; }
+    closeModal('modal-edit-svc');
+    try {
+      await api(`/api/services/${id}`, {
+        method: 'PATCH', body: JSON.stringify({ name, description: desc, fixed_price: price })
+      });
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function toggleService(id, current) {
+    try {
+      await api(`/api/services/${id}`, {
+        method: 'PATCH', body: JSON.stringify({ active: current ? 0 : 1 })
+      });
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  /* ── Actions: Providers ─────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('prov-type').addEventListener('change', function() {
+      document.getElementById('commission-row').style.display =
+        this.value === '1' ? 'block' : 'none';
+    });
+  });
+
+  async function confirmAddProvider() {
+    const name   = document.getElementById('prov-name').value.trim();
+    const phone  = document.getElementById('prov-phone').value.trim();
+    const zone   = document.getElementById('prov-zone').value.trim();
+    const bio    = document.getElementById('prov-bio').value.trim();
+    const isPro  = document.getElementById('prov-type').value === '1';
+    const comm   = parseFloat(document.getElementById('prov-commission').value) || 20;
+    const notes  = document.getElementById('prov-notes').value.trim();
+    if (!name || !phone || !zone) { alert('Completá nombre, celular y zona.'); return; }
+    closeModal('modal-add-prov');
+    try {
+      await api('/api/providers', {
+        method: 'POST',
+        body: JSON.stringify({ name, phone, zone, bio, is_pro: isPro,
+                               commission_pct: comm, notes })
+      });
+      ['prov-name','prov-phone','prov-zone','prov-bio','prov-notes'].forEach(
+        id => document.getElementById(id).value = '');
+      document.getElementById('prov-type').value = '0';
+      document.getElementById('commission-row').style.display = 'none';
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  /* ── Tabs ───────────────────────────────────────────────────── */
+  function switchTab(t) {
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('pane-' + t).classList.add('active');
+    document.getElementById('tab-'  + t).classList.add('active');
+  }
+
+  /* ── Modal helpers ──────────────────────────────────────────── */
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+  );
+
+  /* ── Helpers ────────────────────────────────────────────────── */
+  function statusLabel(s) {
+    return { pending: 'Pendiente', assigned: 'Asignado', completed: 'Completado' }[s] || s;
+  }
+  function fmt(n) {
+    return Number(n).toLocaleString('es-AR', { maximumFractionDigits: 0 });
+  }
+  function esc(s) { return (s||'').replace(/'/g, "\\'"); }
+
+  /* ── Init ───────────────────────────────────────────────────── */
+  loadAll();
+  setInterval(loadAll, 30000);
+</script>
+</body>
+</html>
