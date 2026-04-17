@@ -135,6 +135,8 @@ def init_db():
             ("client_token",          "TEXT"),
             ("provider_confirmation", "TEXT NOT NULL DEFAULT 'pending'"),
             ("noshow",                "INTEGER NOT NULL DEFAULT 0"),
+            ("vehicle_type",          "TEXT"),
+            ("notes",                 "TEXT"),
         ]:
             _add_column(c, "requests", col, dfn)
 
@@ -193,8 +195,10 @@ class NewRequest(BaseModel):
     service_type:         Literal["standard", "pro"]
     selected_service_id:  Optional[int] = None
     selected_provider_id: Optional[int] = None
-    scheduled_date: Optional[str] = None
-    scheduled_time: Optional[str] = None
+    scheduled_date:  Optional[str] = None
+    scheduled_time:  Optional[str] = None
+    vehicle_type:    Optional[str] = None
+    notes:           Optional[str] = None
 
 class AvailabilityBody(BaseModel):
     availability: str
@@ -379,11 +383,13 @@ def create_request(b: NewRequest):
         c.execute(
             """INSERT INTO requests
                (name, phone, address, service_type, selected_service_id, selected_provider_id,
-                final_price, scheduled_date, scheduled_time, client_token, created_at)
-               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                final_price, scheduled_date, scheduled_time, client_token,
+                vehicle_type, notes, created_at)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
             (b.name, b.phone, b.address, b.service_type,
              b.selected_service_id, b.selected_provider_id,
-             initial_price, b.scheduled_date, b.scheduled_time, client_token, now)
+             initial_price, b.scheduled_date, b.scheduled_time, client_token,
+             b.vehicle_type, b.notes, now)
         )
         rid = c.fetchone()["id"]
 

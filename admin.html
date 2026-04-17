@@ -496,9 +496,11 @@
         <div class="card-body">
           <strong>${r.name}</strong> · ${r.phone}<br>
           📍 ${r.address}<br>
+          ${r.vehicle_type ? `🚗 ${r.vehicle_type}<br>` : ''}
           ${svcLine  ? svcLine  + '<br>' : ''}
           ${schedLine? schedLine + '<br>' : ''}
           ${provLine ? provLine + (confLine ? ' · ' + confLine : '') : ''}
+          ${r.notes  ? `<br><span style="font-size:12px;color:#888">📝 ${r.notes}</span>` : ''}
         </div>
         ${finRow}
         ${acts ? `<div class="card-actions">${acts}</div>` : ''}

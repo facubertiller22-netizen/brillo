@@ -255,6 +255,46 @@
     .tier-card.pro-tier  .tier-cta:hover { background: #f1f5f9; }
     .loading-text { color: var(--muted); font-size: 14px; padding: 40px 0; text-align: center; }
 
+    /* ── Service cards ─────────────────────────────────────── */
+    #servicios { background: #f8faff; }
+    .svc-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; margin-top: 40px;
+    }
+    .service-card {
+      background: white; border-radius: 20px; padding: 28px 24px;
+      border: 1.5px solid var(--border); display: flex; flex-direction: column;
+      gap: 0; position: relative; transition: all .2s;
+    }
+    .service-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+    .service-tag {
+      position: absolute; top: -12px; left: 24px;
+      font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px;
+      letter-spacing: .4px; white-space: nowrap;
+    }
+    .service-tag.popular  { background: var(--blue); color: white; }
+    .service-tag.premium  { background: #0d1117;     color: #60a5fa; }
+    .service-card-icon { font-size: 32px; margin-bottom: 14px; }
+    .service-card h3 { font-size: 18px; font-weight: 800; color: var(--text);
+                       margin-bottom: 8px; letter-spacing: -.3px; }
+    .service-card p  { font-size: 14px; color: var(--muted); line-height: 1.6;
+                       flex: 1; margin-bottom: 20px; }
+    .service-price {
+      font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 4px;
+    }
+    .service-price span { font-size: 22px; font-weight: 800; color: var(--text); }
+    .service-cta {
+      width: 100%; padding: 13px; background: var(--blue); color: white; border: none;
+      border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', Arial, sans-serif; margin-top: 16px; transition: all .2s;
+    }
+    .service-cta:hover { background: var(--blue-dk); }
+    .svc-disclaimer {
+      text-align: center; font-size: 13px; color: var(--muted); margin-top: 28px;
+      padding: 14px 20px; background: white; border-radius: 10px;
+      border: 1px solid var(--border); line-height: 1.6;
+    }
+
     /* ── PRO Providers ──────────────────────────────────────── */
     #pro { background: #f8faff; }
     .pro-grid {
@@ -523,7 +563,7 @@
   </a>
   <div class="nav-right">
     <button class="nav-lavador" onclick="openTokenModal()">Soy lavador</button>
-    <button class="nav-cta"     onclick="openBooking()">Pedir turno</button>
+    <button class="nav-cta"     onclick="openBooking()">Solicitar turno</button>
   </div>
 </nav>
 
@@ -537,7 +577,7 @@
     <h1>Tu auto,<br><span>impecable.</span><br>En tu casa.</h1>
     <p>Detailing profesional a domicilio. Lavadores verificados, pago seguro y resultado garantizado.</p>
     <div class="hero-btns">
-      <button class="btn-primary" onclick="openBooking()">Pedir turno ahora</button>
+      <button class="btn-primary" onclick="openBooking()">Solicitar turno</button>
       <button class="btn-outline" onclick="document.getElementById('experiencias').scrollIntoView({behavior:'smooth'})">Ver opciones</button>
     </div>
   </div>
@@ -614,6 +654,48 @@
         <button class="tier-cta" onclick="document.getElementById('pro').scrollIntoView({behavior:'smooth'})">Ver detailers PRO</button>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- ── Servicios ─────────────────────────────────────────────────── -->
+<section id="servicios">
+  <div class="section-inner">
+    <div class="section-label">Nuestros servicios</div>
+    <div class="section-title">Elegí el que necesitás</div>
+    <p class="section-sub">Precio final según tipo de vehículo y proveedor asignado. Siempre te confirmamos antes de cobrar.</p>
+    <div class="svc-grid">
+
+      <div class="service-card">
+        <span class="service-tag popular">Más elegido</span>
+        <div class="service-card-icon">🚿</div>
+        <h3>Lavado Premium</h3>
+        <p>Lavado exterior e interior completo con productos premium. Incluye aspirado, vidrios y llantas.</p>
+        <div class="service-price">Desde <span>$85.000</span></div>
+        <button class="service-cta" onclick="openBookingService('Lavado Premium','$85.000')">Solicitar turno</button>
+      </div>
+
+      <div class="service-card">
+        <div class="service-card-icon">✨</div>
+        <h3>Detailing Completo</h3>
+        <p>Tratamiento profundo interior y exterior. Descontaminación, pulido y protección de pintura.</p>
+        <div class="service-price">Desde <span>$130.000</span></div>
+        <button class="service-cta" onclick="openBookingService('Detailing Completo','$130.000')">Solicitar turno</button>
+      </div>
+
+      <div class="service-card">
+        <span class="service-tag premium">Premium</span>
+        <div class="service-card-icon">🔮</div>
+        <h3>Tratamiento Cerámico</h3>
+        <p>Protección cerámica de larga duración. Hidrofóbico, anti-rayones y brillo profesional garantizado.</p>
+        <div class="service-price">Desde <span>$850.000</span></div>
+        <button class="service-cta" onclick="openBookingService('Tratamiento Cerámico','$850.000')">Solicitar turno</button>
+      </div>
+
+    </div>
+    <div class="svc-disclaimer">
+      💡 El precio final puede variar según el tipo de vehículo, el estado de la pintura y el proveedor asignado.<br>
+      Siempre te confirmamos el precio antes de proceder.
     </div>
   </div>
 </section>
@@ -752,7 +834,7 @@
     <!-- Form -->
     <div id="booking-form-section">
       <button class="modal-back" id="modal-back-btn" onclick="resetBooking()" style="display:none">← Volver</button>
-      <h2 id="modal-title">Pedir turno</h2>
+      <h2 id="modal-title">Solicitar turno</h2>
       <p class="modal-sub" id="modal-sub">Completá tus datos y te contactamos a la brevedad.</p>
 
       <div class="selected-info" id="selected-info"></div>
@@ -770,6 +852,19 @@
       <input type="tel"   id="booking-phone"   placeholder="Ej: 1122334455">
       <label>Tu dirección</label>
       <input type="text"  id="booking-address" placeholder="Ej: Los Álamos 1234, Nordelta">
+
+      <label>Tipo de vehículo</label>
+      <select id="booking-vehicle">
+        <option value="">— Seleccionar —</option>
+        <option value="Auto">Auto</option>
+        <option value="SUV / 4x4">SUV / 4x4</option>
+        <option value="Pickup">Pickup</option>
+        <option value="Camioneta">Camioneta</option>
+        <option value="Moto">Moto</option>
+      </select>
+
+      <label>Notas adicionales <span style="font-weight:400;color:#94a3b8">(opcional)</span></label>
+      <input type="text" id="booking-notes" placeholder="Ej: pintura oscura, necesita atención especial…">
 
       <div style="display:flex;gap:10px;margin-top:0">
         <div style="flex:1">
@@ -796,7 +891,7 @@
       </div>
 
       <button class="modal-submit" id="booking-submit" onclick="submitBooking()">
-        Enviar solicitud
+        Solicitar turno
       </button>
     </div>
 
@@ -888,7 +983,7 @@
         <p>${s.description || 'Servicio a domicilio en tu zona.'}</p>
         <div class="svc-footer">
           <div class="svc-price">$${fmt(s.fixed_price)}</div>
-          <button class="svc-btn">Pedir turno</button>
+          <button class="svc-btn">Solicitar turno</button>
         </div>
       </div>`).join('');
   }
@@ -929,10 +1024,24 @@
   function openBooking() {
     bookingType  = 'standard';
     bookingProvId = null;
-    document.getElementById('modal-title').textContent    = 'Pedir turno';
+    document.getElementById('modal-title').textContent    = 'Solicitar turno';
     document.getElementById('modal-sub').textContent      = 'Completá tus datos y te contactamos.';
     document.getElementById('service-select-row').style.display = 'none';
     document.getElementById('selected-info').style.display = 'none';
+    document.getElementById('modal-back-btn').style.display = 'none';
+    document.getElementById('booking-service-id').value = '';
+    showBookingOverlay();
+  }
+
+  function openBookingService(serviceName, startingPrice) {
+    bookingType   = 'standard';
+    bookingProvId = null;
+    document.getElementById('modal-title').textContent = serviceName;
+    document.getElementById('modal-sub').textContent   = 'Completá tus datos. Te confirmamos precio y disponibilidad.';
+    document.getElementById('service-select-row').style.display = 'none';
+    const info = document.getElementById('selected-info');
+    info.textContent = '🧹 ' + serviceName + ' · Desde ' + startingPrice;
+    info.style.display = 'block';
     document.getElementById('modal-back-btn').style.display = 'none';
     document.getElementById('booking-service-id').value = '';
     showBookingOverlay();
@@ -955,7 +1064,7 @@
   function openBookingStandard(sid, name) {
     bookingType   = 'standard';
     bookingProvId = null;
-    document.getElementById('modal-title').textContent = 'Pedir turno';
+    document.getElementById('modal-title').textContent = 'Solicitar turno';
     document.getElementById('modal-sub').textContent   = 'Completá tus datos y te contactamos.';
     document.getElementById('service-select-row').style.display = 'none';
     const info = document.getElementById('selected-info');
@@ -984,7 +1093,7 @@
     document.getElementById('booking-success').style.display = 'none';
     document.getElementById('booking-overlay').classList.add('open');
     document.getElementById('booking-submit').disabled = false;
-    document.getElementById('booking-submit').textContent = 'Enviar solicitud';
+    document.getElementById('booking-submit').textContent = 'Solicitar turno';
     // Set minimum date to tomorrow
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     document.getElementById('booking-date').min = tomorrow.toISOString().slice(0,10);
@@ -1015,13 +1124,18 @@
     const schedDate = document.getElementById('booking-date').value || null;
     const schedTime = document.getElementById('booking-time').value || null;
 
+    const vehicle = document.getElementById('booking-vehicle').value || null;
+    const notes   = document.getElementById('booking-notes').value.trim() || null;
+
     const body = {
       name, phone, address,
       service_type:          bookingType,
       selected_service_id:   bookingType === 'standard' ? sid        : null,
       selected_provider_id:  bookingType === 'pro'      ? bookingProvId : null,
       scheduled_date:        schedDate,
-      scheduled_time:        schedTime
+      scheduled_time:        schedTime,
+      vehicle_type:          vehicle,
+      notes:                 notes
     };
 
     try {
@@ -1037,17 +1151,18 @@
       } else {
         const err = await r.json().catch(() => ({}));
         alert('Error: ' + (err.detail || 'Intentá de nuevo.'));
-        btn.disabled = false; btn.textContent = 'Enviar solicitud';
+        btn.disabled = false; btn.textContent = 'Solicitar turno';
       }
     } catch(e) {
       alert('No se pudo conectar. Revisá tu conexión.');
-      btn.disabled = false; btn.textContent = 'Enviar solicitud';
+      btn.disabled = false; btn.textContent = 'Solicitar turno';
     }
   }
 
   function resetBooking() {
-    ['booking-name','booking-phone','booking-address'].forEach(
+    ['booking-name','booking-phone','booking-address','booking-notes'].forEach(
       id => document.getElementById(id).value = '');
+    document.getElementById('booking-vehicle').value = '';
     document.getElementById('booking-service-id').value = '';
     document.getElementById('booking-date').value = '';
     document.getElementById('booking-time').value = '';
