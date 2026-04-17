@@ -587,12 +587,23 @@
       const tier    = p.is_pro ? '<span class="badge pro">PRO</span>' : '<span class="badge standard">Standard</span>';
       const avail   = p.availability || 'available';
       const nsCount = p.noshow_count || 0;
+      const fullPortalUrl = window.location.origin + '/proveedor/' + (p.provider_token || '');
       const portalLink = p.provider_token
-        ? `<a href="/proveedor/${p.provider_token}" target="_blank"
-             style="display:inline-block;margin-top:6px;font-size:12px;color:#4361ee;font-weight:bold;">
-             🔗 Ver portal del lavador
-           </a>`
-        : '';
+        ? `<div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 12px;">
+             <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">🔑 Link del portal</div>
+             <div style="font-size:12px;color:#1e40af;word-break:break-all;margin-bottom:8px;">${fullPortalUrl}</div>
+             <div style="display:flex;gap:6px;">
+               <button class="btn-action edit" style="font-size:12px;padding:5px 10px;"
+                 onclick="navigator.clipboard.writeText('${fullPortalUrl}').then(()=>alert('Link copiado! Mandáselo al lavador por WhatsApp.'))">
+                 📋 Copiar link
+               </button>
+               <a href="${fullPortalUrl}" target="_blank"
+                  style="font-size:12px;padding:5px 10px;background:#f0f4f8;color:#333;border:1px solid #ddd;border-radius:8px;font-weight:700;text-decoration:none;">
+                 👁 Ver portal
+               </a>
+             </div>
+           </div>`
+        : '<div style="color:#dc3545;font-size:12px;margin-top:6px">⚠️ Sin token — reiniciá el servidor</div>';
       const specTags = p.specialties
         ? p.specialties.split(',').filter(Boolean).map(s =>
             `<span class="spec-tag">${s.trim()}</span>`).join('')
