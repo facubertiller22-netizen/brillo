@@ -43,13 +43,28 @@
 
     /* ── Hero ───────────────────────────────────────────────── */
     .hero {
-      background: linear-gradient(135deg, #0d1117 0%, #0f1f3d 60%, #0d1117 100%);
-      padding: 130px 24px 80px; text-align: center; position: relative; overflow: hidden;
+      background: url('/hero.jpg') center/cover no-repeat, #0d1117;
+      padding: 150px 24px 110px; text-align: center; position: relative; overflow: hidden;
     }
+    /* Dark gradient overlay — keeps text readable */
     .hero::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(37,99,235,.2) 0%, transparent 70%);
-      pointer-events: none;
+      content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        linear-gradient(160deg, rgba(10,18,35,.72) 0%, rgba(10,18,35,.88) 55%, rgba(10,18,35,.96) 100%),
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(37,99,235,.22) 0%, transparent 70%);
+    }
+    /* Vignette edges */
+    .hero::after {
+      content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.38) 100%);
+    }
+    .hero-inner {
+      position: relative; z-index: 1;
+      animation: heroFadeIn .9s ease both;
+    }
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
@@ -429,15 +444,17 @@
 
 <!-- ── Hero ────────────────────────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-badge">
-    <div class="dot"></div>
-    Servicio disponible en Nordelta y alrededores
-  </div>
-  <h1>Tu auto,<br><span>impecable.</span><br>En tu casa.</h1>
-  <p>Detailing profesional a domicilio. Lavadores verificados, pago seguro y resultado garantizado.</p>
-  <div class="hero-btns">
-    <button class="btn-primary" onclick="openBooking()">Pedir turno ahora</button>
-    <button class="btn-outline" onclick="document.getElementById('experiencias').scrollIntoView({behavior:'smooth'})">Ver opciones</button>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <div class="dot"></div>
+      Servicio disponible en Nordelta y alrededores
+    </div>
+    <h1>Tu auto,<br><span>impecable.</span><br>En tu casa.</h1>
+    <p>Detailing profesional a domicilio. Lavadores verificados, pago seguro y resultado garantizado.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="openBooking()">Pedir turno ahora</button>
+      <button class="btn-outline" onclick="document.getElementById('experiencias').scrollIntoView({behavior:'smooth'})">Ver opciones</button>
+    </div>
   </div>
 </section>
 

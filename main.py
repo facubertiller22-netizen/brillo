@@ -640,6 +640,8 @@ def _serve_asset(filename: str, media_type: str):
 
 @app.get("/logo.png",    include_in_schema=False)
 def serve_logo(): return _serve_asset("logo.png",   "image/png")
+@app.get("/hero.jpg",    include_in_schema=False)
+def serve_hero(): return _serve_asset("hero.jpg",   "image/jpeg")
 @app.get("/visa.svg",    include_in_schema=False)
 def serve_visa(): return _serve_asset("visa.svg",   "image/svg+xml")
 @app.get("/amex.svg",    include_in_schema=False)
