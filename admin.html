@@ -296,6 +296,33 @@
   </div>
 </div>
 
+<!-- Editar lavador -->
+<div class="overlay" id="modal-edit-prov">
+  <div class="modal">
+    <h3>Editar lavador</h3>
+    <input type="hidden" id="edit-prov-id">
+    <label>Nombre</label>
+    <input type="text" id="edit-prov-name">
+    <label>Celular</label>
+    <input type="tel" id="edit-prov-phone">
+    <label>Zona</label>
+    <input type="text" id="edit-prov-zone">
+    <label>Tipo</label>
+    <select id="edit-prov-type" onchange="document.getElementById('edit-comm-row').style.display=this.value==='1'?'block':'none'">
+      <option value="0">Standard</option>
+      <option value="1">PRO</option>
+    </select>
+    <div id="edit-comm-row" style="display:none">
+      <label>Comisión %</label>
+      <input type="number" id="edit-prov-commission" min="0" max="100">
+    </div>
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeModal('modal-edit-prov')">Cancelar</button>
+      <button class="ok" onclick="confirmEditProvider()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Agregar lavador -->
 <div class="overlay" id="modal-add-prov">
   <div class="modal">
@@ -545,6 +572,7 @@
           ${p.notes ? `<span style="color:#888;font-size:12px">Nota: ${p.notes}</span><br>` : ''}
           ${portalLink}
           <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn-action edit" onclick="openEditProv(${p.id},'${esc(p.name)}','${esc(p.phone)}','${esc(p.zone)}',${p.is_pro},${p.commission_pct})">✏️ Editar</button>
             <button class="btn-action edit" onclick="toggleProvAvail(${p.id},'${avail}')">
               ${avail === 'inactive' ? '✅ Activar' : '⏸ Pausar'}
             </button>
@@ -761,6 +789,35 @@
   }
 
   /* ── Provider actions ──────────────────────────────────────── */
+  function openEditProv(id, name, phone, zone, isPro, comm) {
+    document.getElementById('edit-prov-id').value         = id;
+    document.getElementById('edit-prov-name').value       = name;
+    document.getElementById('edit-prov-phone').value      = phone;
+    document.getElementById('edit-prov-zone').value       = zone;
+    document.getElementById('edit-prov-type').value       = isPro ? '1' : '0';
+    document.getElementById('edit-prov-commission').value = comm;
+    document.getElementById('edit-comm-row').style.display = isPro ? 'block' : 'none';
+    openModal('modal-edit-prov');
+  }
+
+  async function confirmEditProvider() {
+    const id   = parseInt(document.getElementById('edit-prov-id').value);
+    const name = document.getElementById('edit-prov-name').value.trim();
+    const phone= document.getElementById('edit-prov-phone').value.trim();
+    const zone = document.getElementById('edit-prov-zone').value.trim();
+    const isPro= document.getElementById('edit-prov-type').value === '1';
+    const comm = parseFloat(document.getElementById('edit-prov-commission').value) || 20;
+    if (!name || !phone || !zone) { alert('Completá todos los campos.'); return; }
+    closeModal('modal-edit-prov');
+    try {
+      await api(`/api/providers/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name, phone, zone, is_pro: isPro, commission_pct: comm })
+      });
+      await loadAll();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
   async function toggleProvAvail(pid, current) {
     const next = current === 'inactive' ? 'available' : 'inactive';
     try {
