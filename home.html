@@ -88,7 +88,7 @@
 
     /* ── Hero ───────────────────────────────────────────────── */
     .hero {
-      background: url('/fotolanding.png') center/cover no-repeat, #0d1117;
+      background: url('/fotolandingcelu.png') center/cover no-repeat, #0d1117;
       padding: 150px 24px 110px; text-align: center; position: relative; overflow: hidden;
     }
     /* Dark gradient overlay — keeps text readable */
@@ -197,6 +197,9 @@
       gap: 20px; margin-top: 40px;
     }
     @media (max-width: 640px) { .tier-grid { grid-template-columns: 1fr; } }
+    @media (min-width: 641px) {
+      .hero { background-image: url('/fotolanding.png'); }
+    }
 
     .tier-card {
       border-radius: 20px; padding: 32px 28px; position: relative;
