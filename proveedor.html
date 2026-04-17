@@ -160,9 +160,96 @@
 
     /* Loading */
     .loading { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+
+    /* Welcome screen */
+    .welcome-overlay {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(10,18,35,.92); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .welcome-overlay.open { display: flex; }
+    .welcome-box {
+      background: white; border-radius: 24px; padding: 36px 28px;
+      max-width: 400px; width: 100%; text-align: center;
+      animation: wFadeIn .4s ease both;
+    }
+    @keyframes wFadeIn {
+      from { opacity: 0; transform: translateY(24px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .welcome-box .w-ico { font-size: 48px; margin-bottom: 14px; }
+    .welcome-box h2 { font-size: 22px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+    .welcome-box .w-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .welcome-steps { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .w-step { display: flex; align-items: flex-start; gap: 14px; }
+    .w-step-num {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--blue);
+      color: white; font-size: 14px; font-weight: 800; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .w-step-text strong { display: block; font-size: 14px; font-weight: 700; color: var(--dark); }
+    .w-step-text span   { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .w-rule {
+      background: #fef3c7; border-radius: 10px; padding: 12px 16px;
+      font-size: 13px; color: #92400e; text-align: left; margin-bottom: 24px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .w-btn {
+      width: 100%; padding: 15px; background: var(--blue); color: white;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: background .2s;
+    }
+    .w-btn:hover { background: var(--blue-dk); }
   </style>
 </head>
 <body>
+
+<!-- Welcome screen -->
+<div class="welcome-overlay" id="welcome-overlay">
+  <div class="welcome-box">
+    <div class="w-ico">👋</div>
+    <h2 id="welcome-name">Bienvenido a Brillo</h2>
+    <p class="w-sub">Antes de arrancar, leé cómo va a funcionar el trabajo.</p>
+
+    <div class="welcome-steps">
+      <div class="w-step">
+        <div class="w-step-num">1</div>
+        <div class="w-step-text">
+          <strong>Te asignamos trabajos</strong>
+          <span>Cuando haya un trabajo para vos, te avisamos por WhatsApp y aparece acá.</span>
+        </div>
+      </div>
+      <div class="w-step">
+        <div class="w-step-num">2</div>
+        <div class="w-step-text">
+          <strong>Confirmás o reprogramás</strong>
+          <span>Usás este portal para confirmar que vas, o pedís una nueva fecha si no podés.</span>
+        </div>
+      </div>
+      <div class="w-step">
+        <div class="w-step-num">3</div>
+        <div class="w-step-text">
+          <strong>Hacés el trabajo</strong>
+          <span>Vas a la dirección en el día y horario acordado. Brillo ya coordinó todo con el cliente.</span>
+        </div>
+      </div>
+      <div class="w-step">
+        <div class="w-step-num">4</div>
+        <div class="w-step-text">
+          <strong>Brillo cobra, vos cobrás</strong>
+          <span>El cliente paga por nuestra plataforma. Tu parte te llega por separado.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-rule">
+      <span style="font-size:18px">⚠️</span>
+      <div><strong>Regla importante:</strong> No contactes al cliente directamente. Toda comunicación va a través de Brillo.</div>
+    </div>
+
+    <button class="w-btn" onclick="closeWelcome()">Entendido, ver mis trabajos →</button>
+  </div>
+</div>
 
 <!-- Top bar -->
 <div class="topbar">
@@ -230,6 +317,7 @@
       provData = data.provider;
       jobs     = data.jobs;
       render();
+      showWelcomeIfNeeded(provData.name);
     } catch(e) {
       document.getElementById('app').innerHTML =
         `<div class="section"><div class="empty"><div class="ico">⚠️</div>
@@ -402,6 +490,20 @@
     const [y,m,day] = d.split('-');
     const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  /* ── Welcome screen ────────────────────────────────────── */
+  function showWelcomeIfNeeded(name) {
+    const key = 'brillo_welcome_' + TOKEN;
+    if (!localStorage.getItem(key)) {
+      document.getElementById('welcome-name').textContent = 'Bienvenido, ' + name.split(' ')[0] + ' 👋';
+      document.getElementById('welcome-overlay').classList.add('open');
+    }
+  }
+
+  function closeWelcome() {
+    localStorage.setItem('brillo_welcome_' + TOKEN, '1');
+    document.getElementById('welcome-overlay').classList.remove('open');
   }
 
   /* ── Init ───────────────────────────────────────────────── */
