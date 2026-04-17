@@ -923,7 +923,7 @@
     <div class="t-ico">🔑</div>
     <h3>Acceder a mi dashboard</h3>
     <p>Ingresá el código que te envió el equipo de Brillo por WhatsApp.</p>
-    <input class="token-input" id="token-input" placeholder="Tu código de acceso"
+    <input class="token-input" id="token-input" placeholder="Ej: 47291836"
            onkeydown="if(event.key==='Enter')goToDashboard()">
     <button class="token-btn" onclick="goToDashboard()">Ir a mi dashboard →</button>
     <div class="token-error" id="token-error">Código inválido. Revisá el mensaje que te enviamos.</div>
@@ -1207,8 +1207,11 @@
     if (e.target===document.getElementById('token-overlay')) closeTokenModal();
   }
   async function goToDashboard() {
-    const token = document.getElementById('token-input').value.trim();
-    if (!token) return;
+    let raw = document.getElementById('token-input').value.trim();
+    if (!raw) return;
+    // Accept full URL (https://...../proveedor/TOKEN) or just the token
+    const urlMatch = raw.match(/\/proveedor\/([^/?#\s]+)/);
+    const token = urlMatch ? urlMatch[1] : raw;
     try {
       const r = await fetch(`/api/proveedor/${token}/jobs`,
         { headers:{'ngrok-skip-browser-warning':'true'} });

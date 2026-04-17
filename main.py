@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 from datetime import datetime
 from contextlib import contextmanager
-import os, secrets, mercadopago
+import os, secrets, random, mercadopago
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -144,13 +144,18 @@ def init_db():
 init_db()
 
 
+def _make_token() -> str:
+    """Generate an 8-digit numeric token (10000000–99999999)."""
+    return str(secrets.randbelow(90000000) + 10000000)
+
+
 def _seed_provider_tokens():
     """Assign a unique portal token to every provider that doesn't have one yet."""
     with db() as c:
         c.execute("SELECT id FROM providers WHERE provider_token IS NULL OR provider_token=''")
         rows = c.fetchall()
         for row in rows:
-            token = secrets.token_urlsafe(16)
+            token = _make_token()
             c.execute("UPDATE providers SET provider_token=%s WHERE id=%s", (token, row["id"]))
 
 _seed_provider_tokens()
@@ -296,7 +301,7 @@ def delete_service(sid: int):
 @app.post("/api/providers", status_code=201, tags=["Providers"])
 def create_provider(b: NewProvider):
     now   = datetime.utcnow().isoformat()
-    token = secrets.token_urlsafe(16)
+    token = _make_token()
     with db() as c:
         c.execute(
             """INSERT INTO providers
